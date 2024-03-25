@@ -33,7 +33,11 @@ public class MainGeneticAlgorithm {
         //population.getSchedule(1).printSchedule();
         sga.mutation(population.getSchedule(0));
         //sga.mutation(population.getSchedule(1));
+        System.out.println();
+        System.out.println();
         System.out.println("now after mutation");
+        System.out.println();
+        System.out.println();
         population.getSchedule(0).printSchedule();
         //population.getSchedule(1).printSchedule();
 

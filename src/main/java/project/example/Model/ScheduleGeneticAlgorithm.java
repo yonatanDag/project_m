@@ -19,7 +19,7 @@ public class ScheduleGeneticAlgorithm {
     private int eliteCount;
     public static int countGenerations;
     private Population population;
-    private ArrayList<SpecializationTechnician> stList;
+    private SpecializationService specService;
 
     public ScheduleGeneticAlgorithm(int populationSize, DB db, int maxGenerations, double mutationRate, double crossoverRate, int eliteCount) throws ClassNotFoundException, SQLException {
         this.populationSize = populationSize;
@@ -30,7 +30,7 @@ public class ScheduleGeneticAlgorithm {
         this.eliteCount = eliteCount;
         ScheduleGeneticAlgorithm.countGenerations = 0;
         this.population = generateRandomPopulation();
-        this.stList = db.loadSpecializationTechnicians();
+        this.specService = new SpecializationService(db.loadSpecializationTechnicians());
     }
 
     public int getPopulationSize() {
@@ -82,92 +82,6 @@ public class ScheduleGeneticAlgorithm {
         this.population = population;
     }
 
-    // helper function that find the start index of a technician's specializations in the sorted list
-    private int findFirstIndex(Technician tech) {
-        int low = 0;
-        int high = stList.size() - 1;
-    
-        while (low <= high) {
-            int mid = (low + high) / 2;
-            SpecializationTechnician midVal = stList.get(mid);
-        
-            if (midVal.getTech().getIdT() < tech.getIdT()) {
-                low = mid + 1;
-            }
-
-            else{ 
-                if (midVal.getTech().getIdT() > tech.getIdT()) {
-                    high = mid - 1;
-                } 
-                else {
-                    // Found the technician, now move backwards to find the start index of their specializations
-                    while (mid > low && stList.get(mid - 1).getTech().getIdT() == tech.getIdT()) {
-                        mid--;
-                    }
-                    return mid;
-                }
-            }
-        }
-        return -1;
-    }
-
-    // fucntion that gets Technician and Specialization and return true if the Technician is specialize in the Specialization that gets
-    public boolean isTechSpec(Technician tech, Specialization spec) {
-        int startIndex = findFirstIndex(tech);
-        
-        // check if Technician not found
-        if (startIndex == -1) {
-            return false;
-        }
-    
-        // iterate through the technician's specializations starting from the startIndex
-        while (startIndex < stList.size() && stList.get(startIndex).getTech().getIdT() == tech.getIdT()) {
-            SpecializationTechnician currentSpecTech = stList.get(startIndex);
-            if (currentSpecTech.getType().getIdS() == spec.getIdS()) {
-                // found the matching specialization
-                return true;
-            }
-            startIndex++;
-        }
-    
-        // no matching specialization found
-        return false;
-    }
-
-    // fucntion that gets 2 Technicians and return true if both specialize in the Specialization
-    public boolean isTechsSuit(Technician tech1, Technician tech2){
-        // find the start index of each technician's specializations
-        int startIndexTech1 = findFirstIndex(tech1);
-        int startIndexTech2 = findFirstIndex(tech2);
-    
-        if (startIndexTech1 == -1 || startIndexTech2 == -1) {
-            return false;
-        }
-    
-        // compare the specializations of both technicians from the start indexes found
-        while (startIndexTech1 < stList.size() && stList.get(startIndexTech1).getTech().getIdT() == tech1.getIdT() &&
-               startIndexTech2 < stList.size() && stList.get(startIndexTech2).getTech().getIdT() == tech2.getIdT()) {
-                
-            int specId1 = stList.get(startIndexTech1).getType().getIdS();
-            int specId2 = stList.get(startIndexTech2).getType().getIdS();
-        
-            if (specId1 == specId2) {
-                // both technicians share at least one specialization
-                return true;
-            } 
-            else{ 
-                if (specId1 < specId2) {
-                    startIndexTech1++;
-                }   
-                else {
-                    startIndexTech2++;
-                }
-            }
-        }
-        // No common specializations were found
-        return false;
-    }
-
     // generate random population
     public Population generateRandomPopulation() throws ClassNotFoundException, SQLException {
         Population population = new Population(this.populationSize);
@@ -179,12 +93,6 @@ public class ScheduleGeneticAlgorithm {
         }
         return population;
     }
-
-    // function that calculate the duration in LocalDateTime format from minutes
-    public LocalDateTime subtractMinutesFromScheduledTime(LocalDateTime scheduledTime, int minutes) {
-        return scheduledTime.minusMinutes(minutes);
-    }
-    
 
     // get 1 Schedule and make random change in it
     public void mutation(Schedule schedule){
@@ -218,7 +126,7 @@ public class ScheduleGeneticAlgorithm {
 
         i = 0;
         // loop that make sure that tech1 and tech2 are specialize in at least 1 same Specialization and they are the same Technician
-        while((isTechsSuit(tech1, tech2) == false && tech2.getIdT() != tech1.getIdT()) && i < 20){
+        while((this.specService.isTechsSuit(tech1, tech2) == false && tech2.getIdT() != tech1.getIdT()) && i < 20){
             rnd2 = (int)(Math.random() * techList.size());
             tech2 = techList.get(rnd2);
         }
@@ -230,7 +138,7 @@ public class ScheduleGeneticAlgorithm {
         Task task1 = lst1.get(rnd1);
         i = 0;
         // loop that make sure that tech2 is suit to fix task1
-        while((isTechSpec(tech2, task1.getRequiredSpecialization()) != true) && i < 20){
+        while((this.specService.isTechSpec(tech2, task1.getRequiredSpecialization()) != true) && i < 20){
             rnd1 = (int)(Math.random() * lst1.size());
             task1 = lst1.get(rnd1);
         }
@@ -258,7 +166,7 @@ public class ScheduleGeneticAlgorithm {
 
             i = 0;
             // loop that make sure that tech1 is suit to fix task2
-            while((isTechSpec(tech1, task2.getRequiredSpecialization()) != true) && i < 20){
+            while((this.specService.isTechSpec(tech1, task2.getRequiredSpecialization()) != true) && i < 20){
                 rnd2 = (int)(Math.random() * lst2.size());
                 task2 = lst2.get(rnd2);
             }
