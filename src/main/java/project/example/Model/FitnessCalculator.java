@@ -120,7 +120,9 @@ public class FitnessCalculator {
             }
 
             // execute the efficiency of the Scheduling Tasks of the current Technician(by execute the proportion between minutesOfWork and minutesInDrive) 
-            fitness += (minutesOfWork/minutesInDrive)*2;
+            if(minutesInDrive != 0){
+                fitness += (minutesOfWork/minutesInDrive)*2;
+            }
 
         }
 

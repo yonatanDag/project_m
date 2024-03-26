@@ -1,7 +1,6 @@
 package project.example.Model;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SpecializationService {
     private ArrayList<SpecializationTechnician> stList;

@@ -1,17 +1,13 @@
 package project.example.Model;
 
-import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
-import project.example.Controller.DB;
 
 public class Schedule {
 
@@ -20,6 +16,8 @@ public class Schedule {
 
     // unscheduledFaults holds a list of tasks that have not been assigned to any technician yet.
     private ArrayList<Task> unscheduledTasks = new ArrayList<>();
+
+    private double fitness = -1;
 
     public Schedule(ArrayList<Technician> techList) {
         this.scheduling = new HashMap<>();
@@ -73,6 +71,39 @@ public class Schedule {
     public void setUnscheduledTask(ArrayList<Task> unscheduledTasks) {
         this.unscheduledTasks = unscheduledTasks;
     }
+
+    public double getFitness() {
+        return fitness;
+    }
+
+    public void setFitness(double fitness) {
+        this.fitness = fitness;
+    }
+
+    public ArrayList<Technician> getTechnicians() {
+        // Return a new ArrayList containing all technicians from the scheduling map
+        return new ArrayList<>(scheduling.keySet());
+    }
+
+    // Retrieves all tasks in this schedule, both scheduled and unscheduled, as copies.
+    public ArrayList<Task> getAllTasks() {
+        ArrayList<Task> allTasks = new ArrayList<>();
+
+        // Iterate through each technician's scheduled tasks and add copies to the list
+        for (ArrayList<Task> tasks : scheduling.values()) {
+            for (Task task : tasks) {
+                allTasks.add(new Task(task)); // Add a copy of each task
+            }
+        }
+
+        // Add copies of all unscheduled tasks to the list
+        for (Task task : unscheduledTasks) {
+            allTasks.add(new Task(task)); // Add a copy of each task
+        }
+
+        return allTasks;
+    }
+    
 
     public void addScheduledTask(Task task, Technician tech){
         LocalDateTime scheduledTime;

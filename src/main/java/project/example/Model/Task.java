@@ -21,6 +21,17 @@ public class Task {
         this.scheduledTime = null;
     }
 
+    // Copy constructor
+    public Task(Task other) {
+        this.idT = other.idT;
+        this.assignedTechnician = other.assignedTechnician;
+        this.client = other.client;
+        this.fault = other.fault;
+        this.reportedTime = other.reportedTime;
+        this.scheduledTime = other.scheduledTime;
+    }
+
+
     public int getIdT() {
         return idT;
     }

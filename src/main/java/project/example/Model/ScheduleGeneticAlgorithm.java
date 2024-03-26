@@ -1,7 +1,6 @@
 package project.example.Model;
 
 import java.sql.SQLException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -29,8 +28,8 @@ public class ScheduleGeneticAlgorithm {
         this.crossoverRate = crossoverRate;
         this.eliteCount = eliteCount;
         ScheduleGeneticAlgorithm.countGenerations = 0;
-        this.population = generateRandomPopulation();
         this.specService = new SpecializationService(db.loadSpecializationTechnicians());
+        this.population = generateRandomPopulation();
     }
 
     public int getPopulationSize() {
@@ -91,6 +90,7 @@ public class ScheduleGeneticAlgorithm {
             temp.generateRandomSchedule(db.loadSpecializationTechnicians());
             population.addSchedule(temp);
         }
+        population.updateFitnessForAllSchedules(this.specService); // Update fitness for all schedules
         return population;
     }
 
@@ -176,8 +176,49 @@ public class ScheduleGeneticAlgorithm {
             schedule.removeScheduledTask(rnd2, tech2);  
             schedule.addScheduledTask(task1, tech2);
             schedule.addScheduledTask(task2, tech1);
-            
         }
     }
+
+    public Schedule createRouletteWheel() {
+        // sum of all the fitness of the schedules in the population
+        double sum = this.population.sumFitness();
+        // array of the proportions of the schedules in the population
+        double proportions[] = new double[this.population.getPopulationSize()];
+        // array of cumulative proportions
+        double cumulativeProportions[] = new double[this.population.getPopulationSize()];
+        double cumulativeTotal = 0; // total of the cumulative proportions
+    
+        for (int i = 0; i < this.population.getPopulationSize(); i++) {
+            // calculate the proportion of the Schedule in the population (fitness / sum)
+            proportions[i] = this.population.getSchedule(i).getFitness() / sum;
+        }
+        // sum all the proportions and add them to the cumulative proportions array
+        for (int i = 0; i < this.population.getPopulationSize(); i++) {
+            cumulativeTotal += proportions[i];
+            // add the proportion to the cumulative total
+            cumulativeProportions[i] = cumulativeTotal;
+        }
+        // generate a random number between 0 and the cumulative total
+        double random = Math.random() * cumulativeTotal;
+        // find the schedule that corresponds to the random number
+        for (int i = 0; i < this.population.getPopulationSize(); i++) {
+            // if the random number is less than the cumulative proportion of the schedule
+            if (random < cumulativeProportions[i]) {
+                return this.population.getSchedule(i);
+            }
+        }
+        // In theory, the method should never reach this point because the random number should always be within the range
+        // of the cumulative proportions. However, to satisfy the return statement, return the last schedule as a fallback.
+        return this.population.getSchedule(this.population.getPopulationSize() - 1);
+    }
+
+    public Schedule crossover(Schedule parent1, Schedule parent2){
+        ArrayList<Technician> techList = parent1.getTechnicians();
+        Schedule offspring = new Schedule(techList);
+
+
+        return offspring;
+    }
+    
 
 }
