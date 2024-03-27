@@ -5,7 +5,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 import project.example.Controller.DB;
 
@@ -84,10 +87,11 @@ public class ScheduleGeneticAlgorithm {
     // generate random population
     public Population generateRandomPopulation() throws ClassNotFoundException, SQLException {
         Population population = new Population(this.populationSize);
+        ArrayList<SpecializationTechnician> stList = db.loadSpecializationTechnicians();
         for (int i = 0; i < this.populationSize; i++) {
             ArrayList<Task> unscheduledTasks = this.db.loadTasks();
             Schedule temp = new Schedule(unscheduledTasks, db.loadTechnicians());
-            temp.generateRandomSchedule(db.loadSpecializationTechnicians());
+            temp.generateRandomSchedule(stList);
             population.addSchedule(temp);
         }
         population.updateFitnessForAllSchedules(this.specService); // Update fitness for all schedules
@@ -212,11 +216,70 @@ public class ScheduleGeneticAlgorithm {
         return this.population.getSchedule(this.population.getPopulationSize() - 1);
     }
 
+    
     public Schedule crossover(Schedule parent1, Schedule parent2){
+        Random rand = new Random();
+        int i = 0;
         ArrayList<Technician> techList = parent1.getTechnicians();
         Schedule offspring = new Schedule(techList);
 
+        // determine the random crossover point
+        int crossoverPoint = (int) (Math.random() * parent1.numOfTasks());
+        
+        // Set of all the Task IDs that have been assigned to the new Schedule
+        Set<Integer> assignedTaskIds = new HashSet<>();
 
+        // get a sorted ArrayList of all the Tasks of parent1 and parent2
+        ArrayList<Task> parent1Tasks = parent1.getSortedScheduledTasks();
+        ArrayList<Task> parent2Tasks = parent2.getSortedScheduledTasks();
+
+        // Copy the ScheduledTasks from parent1 up to the crossover point
+        for (; i < crossoverPoint; i++) {
+            Task curTask = new Task(parent1Tasks.get(i));
+            offspring.addTask(curTask);
+            assignedTaskIds.add(curTask.getIdT());
+        }
+
+        // Copy all the remaining ScheduledTasks from parent2 
+        for(i = 0; i < parent2Tasks.size(); i++){
+            Task curTask = new Task(parent2Tasks.get(i));
+
+            // check if the curTask is alraedy in offspring
+            if(!assignedTaskIds.contains(curTask.getIdT())){
+                Technician tech = curTask.getAssignedTechnician();
+                // check if the Technician is still available
+                if(offspring.isTechAvailable(tech, curTask)){
+                    offspring.addScheduledTask(curTask, tech);
+                    assignedTaskIds.add(curTask.getIdT());
+                }
+                // in case that the Technician is unavailable
+                else{
+                    ArrayList<Technician> suitableTechnicians = new ArrayList<>();
+
+                    // Find suitable technicians for the task
+                    for (Technician t : offspring.getScheduling().keySet()) {
+                        if (specService.isTechSpec(t, curTask.getRequiredSpecialization()) && offspring.isTechAvailable(tech, curTask)) {
+                            suitableTechnicians.add(t);
+                        }
+                    }
+                    // in case of there are suitable Technicians
+                    if(!suitableTechnicians.isEmpty()){
+                        // gets randomly a Technician that is suitable for the task
+                        int index = rand.nextInt(suitableTechnicians.size());
+                        Technician curTechnician = suitableTechnicians.get(index);
+                        // add the curTask 
+                        offspring.addScheduledTask(curTask, curTechnician);
+                        assignedTaskIds.add(curTask.getIdT());
+                    }
+                    // in case that there are 0 suitable Technicians
+                    else{
+                        curTask.setAssignedTechnician(null);
+                        curTask.setScheduledTime(null);
+                        offspring.addUnscheduledTask(curTask);
+                    }
+                }
+            }
+        }
         return offspring;
     }
     

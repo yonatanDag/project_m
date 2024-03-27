@@ -1,6 +1,7 @@
 package project.example.Model;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import project.example.Controller.DB;
 
@@ -17,9 +18,46 @@ public class MainGeneticAlgorithm {
         ScheduleGeneticAlgorithm sga = new ScheduleGeneticAlgorithm(15,db, 50, 0.03, 0.9, 2);
         // Initialize population
         Population population = sga.getPopulation();
-        //population.printAllSchedules();
+        Schedule sch1 = population.getSchedule(0);
+        Schedule sch2 = population.getSchedule(1);
 
-        // check the mutation function
+        System.out.println("1:");
+        sch1.printSchedule();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println("2:");
+        sch2.printSchedule();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        // // crossover function
+        // System.out.println("After crossover:");
+        // Schedule sch3 = sga.crossover(sch1, sch2);
+        // sch3.printSchedule();
+        // FitnessCalculator fitnessCalculator = new FitnessCalculator();
+        // double fitness = fitnessCalculator.calculate(sch3, sga.getSpecService());
+        // sch3.setFitness(fitness);
+        // System.out.println("1 fitness: " + sch1.getFitness());
+        // System.out.println("2 fitness: " + sch2.getFitness());
+        // System.out.println("3 fitness: " + sch3.getFitness());
+
+
+        // // check getSortedScheduledTasks function
+        // Schedule sch = population.getRandomSchedule();
+        // ArrayList<Task> tasksLst = sch.getSortedScheduledTasks();
+        // // Printing each Task in the sorted list ", Technician ID: " + task.getAssignedTechnician().getId() +
+        // for (Task task : tasksLst) {
+        //     Integer technicianId = task.getAssignedTechnician() != null ? task.getAssignedTechnician().getIdT() : null; // Use null or a placeholder value if no technician assigned
+        //     String scheduledTimeStr = task.getScheduledTime() != null ? task.getScheduledTime().toString() : "Not Scheduled";
+        //     System.out.println("Task ID: " + task.getIdT() + 
+        //                ", Technician ID: " + (technicianId != null ? technicianId : "No Technician Assigned") +
+        //                ", Scheduled Time: " + scheduledTimeStr + 
+        //                ", Client: " + task.getClient().getName() + ", Fault: " + task.getFault().getfDescription());
+        // }
+
+        // // check the mutation function
 
         // population.getSchedule(0).printSchedule();
         // //population.getSchedule(1).printSchedule();
@@ -42,6 +80,14 @@ public class MainGeneticAlgorithm {
 
         // Schedule best = population.getFittest();
         // best.printSchedule();
+
+        // // check getTechniciansForSpecialization function
+        // Specialization spec = db.loadSpecializations().get(0);
+        // SpecializationService sps = new SpecializationService(db.loadSpecializationTechnicians());
+        // ArrayList<Technician> lst = sps.getTechniciansForSpecialization(spec);
+        // for (Technician technician : lst) {
+        //     System.out.println(technician);
+        // }
         
 
         // Close the database connection
