@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 public class FitnessCalculator {
 
     private int numOfDriving(City city, Task task){
-        if(city.equals(task.getClient().getCity())){
+        if(city.getCityID() == task.getClient().getCity().getCityID()){
             return 15;
         }
         else{
@@ -31,7 +31,7 @@ public class FitnessCalculator {
         return daysSinceReported;
     }
 
-    private double calculatetaskFitness(Task task, Technician tech, City city, SpecializationService specService){
+    public double calculatetaskFitness(Task task, Technician tech, City city, SpecializationService specService){
         double taskFitness = 0.0;
 
         // checks if the Technician is fitting to the Specialization of the task 
@@ -40,33 +40,32 @@ public class FitnessCalculator {
         }
 
         //checks if the Client and the Technician are not from the same area
-        if(task.getClient().getCity().getCityArea().getAreaID() != tech.getCity().getCityArea().getAreaID()){
-            taskFitness += -2.0;
+        if(task.getClient().getCity().getCityArea().getAreaID() != city.getCityArea().getAreaID()){
+            taskFitness -= 1;
         }
-        
         else{ // means that they are from the same City
             // checks if the Client and the Technician are from the same City
-            if(task.getClient().getCity().equals(tech.getCity())){
+            if(task.getClient().getCity().getCityID() == city.getCityID()){
                 taskFitness += 1.5;
             }
             else{ // means that they are from the same Area but not from the same City
-                taskFitness += 0.5;
+                taskFitness += 1;
             }
         }
 
         // check if the Client is premium
         if(task.getClient().isPremium()){
-            taskFitness += 3;
+            taskFitness += 1;
         }
 
         // Calculate fitness based on urgency
-        taskFitness += 0.3 * (11 - task.getFault().getUrgencyLevel());
+        taskFitness += 0.1 * (11 - task.getFault().getUrgencyLevel());
 
         // if in the Specialization of the Task, the Technician is the best(from all the Specializations that he specialize)
-        taskFitness += 0.5 * specService.level(tech, task.getRequiredSpecialization());
+        taskFitness += 0.1 * specService.level(tech, task.getRequiredSpecialization());
 
         // multiply the number of days that the Task waited with 0.1
-        taskFitness += 0.1 * calculateTaskWaiting(task);
+        taskFitness += 0.05 * calculateTaskWaiting(task);
 
         return taskFitness;
     }
@@ -78,15 +77,15 @@ public class FitnessCalculator {
             Task curTask = unscheduledTasks.get(i);
 
             // Calculate fitness based on urgency
-            tasksFitness -= 0.3 * (11 - curTask.getFault().getUrgencyLevel());
+            tasksFitness -= 0.1 * (11 - curTask.getFault().getUrgencyLevel());
             
             // checks if the Client in the current Task is premium
             if(curTask.getClient().isPremium()){
-                tasksFitness -= 10;
+                tasksFitness -= 1;
             }
 
             // multiply the number of days that the Task waited with 0.1
-            tasksFitness -= 0.1 * calculateTaskWaiting(curTask);
+            tasksFitness -= 0.05 * calculateTaskWaiting(curTask);
 
         }
         return tasksFitness;
@@ -104,10 +103,16 @@ public class FitnessCalculator {
             Technician technician = entry.getKey();
             ArrayList<Task> tasks = entry.getValue();
             City prevCity = technician.getCity();
+            Task prevTask = null;
 
             for (int i = 0 ; i < tasks.size(); i++) {
                 Task curTask = tasks.get(i);
                 fitness += calculatetaskFitness(curTask,technician, prevCity, specService);
+
+                // checks if the Client in the pervious Task is the Client in the current Task
+                if((prevTask != null) && (prevTask.getClient().getIdC() == curTask.getClient().getIdC())){
+                    fitness++;
+                }
 
                 // adding the number of minutes that it takes to fix the Task
                 minutesOfWork += curTask.getFault().getDuration();
@@ -117,6 +122,9 @@ public class FitnessCalculator {
 
                 // update the previous City
                 prevCity = curTask.getClient().getCity();
+
+                // update the previous Task
+                prevTask = curTask;
             }
 
             // execute the efficiency of the Scheduling Tasks of the current Technician(by execute the proportion between minutesOfWork and minutesInDrive) 

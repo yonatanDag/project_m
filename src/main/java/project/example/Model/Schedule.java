@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +46,8 @@ public class Schedule {
     }
 
     public ArrayList<Task> getTaskAssignedToTechnician(Technician technician) {
-        return scheduling.getOrDefault(technician, new ArrayList<>());
+        Technician tech = getTechnician(technician);
+        return scheduling.getOrDefault(tech, new ArrayList<>());
     }
 
     public void addUnscheduledTask(Task task) {
@@ -107,8 +107,8 @@ public class Schedule {
         return count;
     }
 
-    // function that gets a Technician and checks if he is available to get more Task(if his last Scheduled Task is end before 18:00)
-    public boolean isTechAvailable(Technician tech, Task newTask){
+    // function that gets a Technician and checks if he is available to get more Task
+    public boolean isTechAvailable(Technician tech, Task newTask) {
         // check if the technician has any scheduled tasks
         ArrayList<Task> tasks = scheduling.get(tech);
         if (tasks == null || tasks.isEmpty()) {
@@ -116,31 +116,31 @@ public class Schedule {
         }
         // Get the last task in the technician's schedule
         Task lastTask = tasks.get(tasks.size() - 1);
-        // calculate the end time of the last task
-        LocalDateTime endTime = lastTask.getScheduledTime().plusMinutes(lastTask.getFault().getDuration() + newTask.getFault().getDuration());
-        // checks if the 2 Tasks(the previous Task and the current Task) are in the same City
-        if(lastTask.getClient().getCity().equals(newTask.getClient().getCity())){
-            // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
-            endTime = endTime.plusMinutes(15);
-        }
-        else{
-            // checks if the 2 Tasks(the previous Task and the current Task) are in the same Area 
-            if(lastTask.getClient().getCity().getCityArea().getAreaID() == newTask.getClient().getCity().getCityArea().getAreaID()){
-                // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
-                endTime = endTime.plusMinutes(40); 
+        // Calculate the end time of the last task
+        LocalDateTime lastTaskEndTime = lastTask.getScheduledTime().plusMinutes(lastTask.getFault().getDuration());
+
+        // Assume travel time between tasks within the same city is 15 minutes, 40 minutes within the same area but different cities, and 90 minutes between different areas.
+        long travelTime = 0;
+        if (lastTask.getClient().getCity().getCityID() != newTask.getClient().getCity().getCityID()) {
+            if (lastTask.getClient().getCity().getCityArea().getAreaID() == newTask.getClient().getCity().getCityArea().getAreaID()) {
+                travelTime = 40;
+            } else {
+                travelTime = 90;
             }
-            else{
-                endTime = endTime.plusMinutes(90);   
-            }
+        } else {
+            travelTime = 15;
         }
-        
-        // define the end of the workday
-        LocalTime workDayEnd = LocalTime.of(19, 30);
-        // convert the end time of the last task to LocalTime for comparison
-        LocalTime lastTaskEndTime = endTime.toLocalTime();
-        // check if the last task ends before the end of the workday
-        return lastTaskEndTime.isBefore(workDayEnd);
+
+        // calculate the prospective start time for the new task, considering travel time
+        LocalDateTime newTaskStartTime = lastTaskEndTime.plusMinutes(travelTime);
+
+        // check if the new task, including its duration, would end before the workday ends at 19:30
+        LocalDateTime workDayEnd = LocalDateTime.of(newTaskStartTime.toLocalDate(), LocalTime.of(19, 30));
+        LocalDateTime newTaskEndTime = newTaskStartTime.plusMinutes(newTask.getFault().getDuration());
+
+        return newTaskEndTime.isBefore(workDayEnd) || newTaskEndTime.equals(workDayEnd);
     }
+
 
     // Retrieves all tasks in this schedule, both scheduled and unscheduled, as copies.
     public ArrayList<Task> getAllTasks() {
@@ -163,6 +163,10 @@ public class Schedule {
 
     // function that get Technician and return his object in the current Schedule
     public Technician getTechnician(Technician tech) {
+        if (tech == null) {
+            return null;
+        }
+        
         for (Technician t : this.scheduling.keySet()) {
             if (t.getIdT() == tech.getIdT()) {
                 return t; // Found the matching technician by ID
@@ -201,12 +205,12 @@ public class Schedule {
             Duration duration = Duration.ofMinutes(durationInMinutes);
 
             // checks if the 2 Tasks are for the same Client
-            if(prevTask.getClient().equals(task.getClient())){
+            if(prevTask.getClient().getIdC() == task.getClient().getIdC()){
                 scheduledTime = prevTask.getScheduledTime().plus(duration);
             }
             else{
                 // checks if the 2 Tasks(the previous Task and the current Task) are in the same City
-                if(prevTask.getClient().getCity().equals(task.getClient().getCity())){
+                if(prevTask.getClient().getCity().getCityID() == task.getClient().getCity().getCityID()){
                     // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
                     scheduledTime = prevTask.getScheduledTime().plus(duration).plusMinutes(15);
                 }
@@ -230,11 +234,17 @@ public class Schedule {
     public void removeScheduledTask(int index, Technician tech){
         ArrayList<Task> lst1 = this.getTaskAssignedToTechnician(tech);
 
-        // set the TechnicianID and the ScheduledTime of the Task as null
-        lst1.get(index).setAssignedTechnician(null);
-        lst1.get(index).setScheduledTime(null);
+        if(lst1 != null && !lst1.isEmpty() && index >= 0 && index < lst1.size()){
+            // set the TechnicianID and the ScheduledTime of the Task as null
+            lst1.get(index).setAssignedTechnician(null);
+            lst1.get(index).setScheduledTime(null);
         
-        lst1.remove(lst1.get(index));
+            lst1.remove(lst1.get(index));
+        } else {
+            // Handle the scenario where the task cannot be removed because the index is invalid
+            System.out.println("Attempted to remove a task at an invalid index or from an empty list.");
+        }
+
 
         LocalDateTime scheduledTime;
         
@@ -352,7 +362,7 @@ public class Schedule {
                 for (Task task : tasks) {
                     LocalDateTime scheduledTime = task.getScheduledTime();
                     String scheduledTimeStr = scheduledTime != null ? scheduledTime.toString() : "Not scheduled";
-                    System.out.println("\tTask ID: " + task.getIdT() + ", Scheduled Time: " + scheduledTimeStr + ", Client: " + task.getClient().getName() + ", Fault: " + task.getFault().getfDescription());
+                    System.out.println("\tTask ID: " + task.getIdT() + ", Scheduled Time: " + scheduledTimeStr + ", Fault: " + task.getFault().getfDescription() + ", Fault Duration: " + task.getFault().getDuration() + ", FSpecialization: " + task.getFault().getCfSpecialization().getIdS());
                 }
             }
         }
@@ -367,56 +377,43 @@ public class Schedule {
         }
     }
 
-    // function to return a sorted list of all scheduled tasks
-    public ArrayList<Task> getSortedScheduledTasks() {
-        ArrayList<Task> sortedTasks = new ArrayList<>();
+    // // function to return a sorted list of all scheduled tasks
+    // Method to get sorted tasks based on the cumulative fitness of tasks for each technician
+    public ArrayList<Task> getSortedScheduledTasks(SpecializationService specService) {
+        // Create a map to store the total fitness for tasks of each technician
+        Map<Technician, Double> technicianFitnessMap = new HashMap<>();
 
-        // adding all tasks
+        FitnessCalculator fitnessCalculator = new FitnessCalculator();
+
+        // Populate the map with total fitness for each technician
         for (Map.Entry<Technician, ArrayList<Task>> entry : scheduling.entrySet()) {
-            sortedTasks.addAll(entry.getValue());
+            Technician tech = entry.getKey();
+            double totalFitness = 0.0;
+            for (Task task : entry.getValue()) {
+                // Assuming calculatetaskFitness method calculates fitness for a given task
+                totalFitness += fitnessCalculator.calculatetaskFitness(task, tech, tech.getCity(), specService);
+            }
+            technicianFitnessMap.put(tech, totalFitness);
         }
 
-        // sort the Tasks by TechnicianID and then by ScheduledTime
-        Collections.sort(sortedTasks, new Comparator<Task>() {
-            @Override
-            public int compare(Task t1, Task t2) {
-                // Handle potential null assigned technicians
-                if (t1.getAssignedTechnician() == null && t2.getAssignedTechnician() == null) {
-                    return 0; // Both tasks have no technician assigned, consider equal
-                }
-                if (t1.getAssignedTechnician() == null) {
-                    return -1; // Consider t1 less than t2, to sort tasks with no technician to the beginning
-                }
-                if (t2.getAssignedTechnician() == null) {
-                    return 1; // Consider t2 less than t1, to sort tasks with no technician to the beginning
-                }
-        
-                // If both tasks have technicians assigned, compare by technician ID
-                int techCompare = Integer.compare(t1.getAssignedTechnician().getIdT(), t2.getAssignedTechnician().getIdT());
-                if (techCompare == 0) {
-                    // If TechnicianIDs are equal, compare by ScheduledTime
-                    // Additional null check for scheduled time may be necessary depending on your implementation
-                    if (t1.getScheduledTime() == null && t2.getScheduledTime() == null) {
-                        return 0; // Both tasks have no scheduled time, consider equal
-                    }
-                    if (t1.getScheduledTime() == null) {
-                        return -1; // Consider t1 less than t2, sort tasks with no scheduled time to the beginning
-                    }
-                    if (t2.getScheduledTime() == null) {
-                        return 1; // Consider t2 less than t1, sort tasks with no scheduled time to the beginning
-                    }
-        
-                    return t1.getScheduledTime().compareTo(t2.getScheduledTime());
-                }
-                return techCompare;
-            }
-        });
+        // convert map entries to a list and sort it based on the fitness value
+        ArrayList<Map.Entry<Technician, Double>> sortedTechnicians = new ArrayList<>(technicianFitnessMap.entrySet());
+        sortedTechnicians.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
 
-        // Appending unscheduled tasks at the end
+        // Create a new list to hold tasks sorted based on technician fitness
+        ArrayList<Task> sortedTasks = new ArrayList<>();
+
+        // Add tasks to the list based on the sorted order of technicians
+        for (Map.Entry<Technician, Double> entry : sortedTechnicians) {
+            ArrayList<Task> tasksForTech = scheduling.get(entry.getKey());
+            // Optionally sort tasks within the same technician if needed
+            // tasksForTech.sort(comparator);
+            sortedTasks.addAll(tasksForTech);
+        }
+
+        // Add unscheduled tasks at the end
         sortedTasks.addAll(unscheduledTasks);
 
         return sortedTasks;
     }
-    
-
 }

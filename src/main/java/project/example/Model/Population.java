@@ -1,6 +1,8 @@
 package project.example.Model;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class Population {
 
@@ -54,6 +56,16 @@ public class Population {
         this.populationSize = populationSize;
     }
 
+    // function that get a Schedule an it remove it from the Population
+    public boolean removeSchedule(Schedule schedule) {
+        if(schedules.remove(schedule)){
+            this.populationSize--;
+            return true;
+        }
+        return false;
+    }
+    
+
     public void printAllSchedules() {
         // Iterate over each Schedule in the population
         for (int i = 0; i < schedules.size(); i++) {
@@ -103,4 +115,34 @@ public class Population {
         }
         return fittest;
     }
+
+    // Function to sort the schedules based on fitness
+    public void sortByFitness() {
+        Collections.sort(this.schedules, new Comparator<Schedule>() {
+            @Override
+            public int compare(Schedule s1, Schedule s2) {
+                // Use Double.compare because we're dealing with double values for fitness
+                // We want to sort in descending order (higher fitness is better)
+                return Double.compare(s2.getFitness(), s1.getFitness());
+            }
+        });
+    }
+
+    public void calculateAverageFitnessAndPrintHighest() {
+        double totalFitness = 0;
+        double highestFitness = Double.MIN_VALUE; // Initialize with the smallest possible value
+    
+        for (Schedule schedule : this.schedules) {
+            double fitness = schedule.getFitness();
+            totalFitness += fitness;
+            if (fitness > highestFitness) {
+                highestFitness = fitness; // Update the highest fitness found so far
+            }
+        }
+    
+        double averageFitness = totalFitness / this.schedules.size();
+        System.out.println("Average Fitness: " + averageFitness);
+        System.out.println("Highest Fitness: " + highestFitness);
+    }
+    
 }

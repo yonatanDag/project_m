@@ -4,8 +4,6 @@ import project.example.Model.*;
 import java.sql.*;
 import java.util.ArrayList; // Import the ArrayList class
 import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
 
 public class DB {
     private Connection connection; // the connection to the mySQL

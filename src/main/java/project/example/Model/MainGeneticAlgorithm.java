@@ -1,7 +1,6 @@
 package project.example.Model;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import project.example.Controller.DB;
 
@@ -15,22 +14,51 @@ public class MainGeneticAlgorithm {
 
 
         // Create GA object/ Genearte Population
-        ScheduleGeneticAlgorithm sga = new ScheduleGeneticAlgorithm(15,db, 50, 0.03, 0.9, 2);
+        ScheduleGeneticAlgorithm sga = new ScheduleGeneticAlgorithm(30,db, 500, 0.05);
         // Initialize population
         Population population = sga.getPopulation();
-        Schedule sch1 = population.getSchedule(0);
-        Schedule sch2 = population.getSchedule(1);
+        int i;
+        
+        for(i = 1; i < sga.getMaxGenerations(); i++){
+            System.out.println("Generation number: " + i);
+            System.out.println("the Population size: " + population.getSchedules().size());
+            population.calculateAverageFitnessAndPrintHighest();
+            sga.generateNextPopulation();
+            population = sga.getPopulation();
+        }
 
-        System.out.println("1:");
-        sch1.printSchedule();
+        System.out.println("Generation number: " + i);
+        System.out.println("the Population size: " + population.getSchedules().size());
+        
+        // print the best Schedule
+        Schedule best = population.getFittest();
         System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("2:");
-        sch2.printSchedule();
-        System.out.println();
-        System.out.println();
-        System.out.println();
+        System.out.println("the fitness is: " + best.getFitness());
+        best.printSchedule();
+        
+        // // check the sortByFitness
+        // population.sortByFitness();
+        // // Iterate over each Schedule in the population
+        // for (int i = 0; i < population.getPopulationSize(); i++) {
+        //     // Retrieve the current Schedule
+        //     Schedule currentSchedule = population.getSchedule(i);
+        //     // Print the fitness of the current Schedule
+        //     System.out.println("Schedule #" + (i + 1) + " Fitness: " + currentSchedule.getFitness());
+        // }
+
+        // Schedule sch1 = population.getSchedule(0);
+        // Schedule sch2 = population.getSchedule(1);
+
+        // System.out.println("1:");
+        // sch1.printSchedule();
+        // System.out.println();
+        // System.out.println();
+        // System.out.println();
+        // System.out.println("2:");
+        // sch2.printSchedule();
+        // System.out.println();
+        // System.out.println();
+        // System.out.println();
 
         // // crossover function
         // System.out.println("After crossover:");
