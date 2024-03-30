@@ -316,4 +316,22 @@ public class ScheduleGeneticAlgorithm {
         this.setPopulation(nextGen);
     }
 
+    public void evolutionCycle(){
+        for(int i = 1; i < this.getMaxGenerations(); i++){
+            System.out.println("Generation number: " + i);
+            System.out.println("the Population size: " + this.population.getSchedules().size());
+            this.population.calculateAverageFitnessAndPrintHighest();
+            this.generateNextPopulation();
+        }
+
+        System.out.println("Generation number: " + this.getMaxGenerations());
+        System.out.println("the Population size: " + this.population.getSchedules().size());
+
+        // print the best Schedule
+        Schedule best = this.population.getFittest();
+        System.out.println();
+        System.out.println("the fitness is: " + best.getFitness());
+        best.printSchedule();
+    }
+
 }

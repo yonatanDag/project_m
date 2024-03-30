@@ -1,7 +1,7 @@
 package project.example.Model;
 
 import java.time.LocalDateTime;
-
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +37,14 @@ public class FitnessCalculator {
         // checks if the Technician is fitting to the Specialization of the task 
         if(!specService.isTechSpec(tech, task.getRequiredSpecialization())){
              return -10.0;
+        }
+
+        // Create a LocalDateTime for the deadline time on the same day as the task
+        LocalDateTime deadline = LocalDateTime.of(task.getScheduledTime().toLocalDate(), LocalTime.of(19, 30));
+
+        // check if the Task (including its duration) finishes before 19:30
+        if (task.getScheduledTime().plusMinutes(task.getFault().getDuration()).isAfter(deadline)) {
+            return -10;
         }
 
         //checks if the Client and the Technician are not from the same area

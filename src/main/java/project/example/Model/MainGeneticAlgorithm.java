@@ -14,27 +14,10 @@ public class MainGeneticAlgorithm {
 
 
         // Create GA object/ Genearte Population
-        ScheduleGeneticAlgorithm sga = new ScheduleGeneticAlgorithm(30,db, 500, 0.05);
+        ScheduleGeneticAlgorithm sga = new ScheduleGeneticAlgorithm(100,db, 200, 0.05);
         // Initialize population
-        Population population = sga.getPopulation();
-        int i;
         
-        for(i = 1; i < sga.getMaxGenerations(); i++){
-            System.out.println("Generation number: " + i);
-            System.out.println("the Population size: " + population.getSchedules().size());
-            population.calculateAverageFitnessAndPrintHighest();
-            sga.generateNextPopulation();
-            population = sga.getPopulation();
-        }
-
-        System.out.println("Generation number: " + i);
-        System.out.println("the Population size: " + population.getSchedules().size());
-        
-        // print the best Schedule
-        Schedule best = population.getFittest();
-        System.out.println();
-        System.out.println("the fitness is: " + best.getFitness());
-        best.printSchedule();
+        sga.evolutionCycle();
         
         // // check the sortByFitness
         // population.sortByFitness();
