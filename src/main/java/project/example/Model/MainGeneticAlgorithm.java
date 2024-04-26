@@ -14,7 +14,7 @@ public class MainGeneticAlgorithm {
 
 
         // Create GA object/ Genearte Population
-        ScheduleGeneticAlgorithm sga = new ScheduleGeneticAlgorithm(100,db, 200, 0.05);
+        ScheduleGeneticAlgorithm sga = new ScheduleGeneticAlgorithm(100,db, 1000, 0.05);
         // Initialize population
         
         sga.evolutionCycle();

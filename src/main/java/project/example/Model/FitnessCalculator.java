@@ -49,15 +49,15 @@ public class FitnessCalculator {
 
         //checks if the Client and the Technician are not from the same area
         if(task.getClient().getCity().getCityArea().getAreaID() != city.getCityArea().getAreaID()){
-            taskFitness -= 1;
+            taskFitness -= 2;
         }
         else{ // means that they are from the same City
             // checks if the Client and the Technician are from the same City
             if(task.getClient().getCity().getCityID() == city.getCityID()){
-                taskFitness += 1.5;
+                taskFitness += 2.5;
             }
             else{ // means that they are from the same Area but not from the same City
-                taskFitness += 1;
+                taskFitness += 1.5;
             }
         }
 
