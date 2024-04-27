@@ -174,6 +174,16 @@ public class Schedule {
         }
         return null; // Return null if no matching technician is found
     }
+
+    // function that get TechnicianID and return his object in the current Schedule
+    public Technician getTechnicianByID(int techID) {
+        for (Technician t : this.scheduling.keySet()) {
+            if (t.getIdT() == techID) {
+                return t; // Found the matching technician by ID
+            }
+        }
+        return null; // Return null if no matching technician is found
+    }
     
 
     public void addScheduledTask(Task task, Technician technician){
@@ -347,6 +357,28 @@ public class Schedule {
             }
             attempts++;
         }
+    }
+
+    public ArrayList<Task> getTasksForClient(int clientId) {
+        ArrayList<Task> tasksForClient = new ArrayList<>();
+
+        // Check scheduled tasks for each technician
+        for (ArrayList<Task> tasks : scheduling.values()) {
+            for (Task task : tasks) {
+                if (task.getClient().getIdC() == clientId) {
+                    tasksForClient.add(task);
+                }
+            }
+        }
+
+        // Check unscheduled tasks
+        for (Task task : unscheduledTasks) {
+            if (task.getClient().getIdC() == clientId) {
+                tasksForClient.add(task);
+            }
+        }
+
+        return tasksForClient;
     }
 
     public void printSchedule() {

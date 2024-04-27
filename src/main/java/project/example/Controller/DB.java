@@ -2,6 +2,7 @@ package project.example.Controller;
 
 import project.example.Model.*;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList; // Import the ArrayList class
 import java.util.Calendar;
 
@@ -215,6 +216,46 @@ public class DB {
         }
         return unScheduledTasksList;
     }
+
+    public boolean addTask(int clientId, int faultId) throws SQLException {
+        // SQL query to insert a new task into the database
+        String insertSQL = "INSERT INTO task (clientID, faultID, description, reportedTime) VALUES (?, ?, NULL, ?);";
+
+        // Get the current time
+        LocalDateTime now = LocalDateTime.now();
+
+        try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
+            // Set the clientID and faultID
+            pstmt.setInt(1, clientId);
+            pstmt.setInt(2, faultId);
+            // Set the reportedTime to the current time
+            pstmt.setTimestamp(3, Timestamp.valueOf(now));
+
+            // Execute the update
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Error adding the task: " + e.getMessage());
+            // Handle exceptions appropriately
+            throw e;
+        }
+    }
+
+    public int getFaultIdByDescription(String description) throws SQLException {
+        String query = "SELECT faultID FROM fault WHERE description = ?";
+        try (PreparedStatement preparedStatement = this.connection.prepareStatement(query)) {
+            preparedStatement.setString(1, description);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("faultID");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle exceptions
+        }
+        return -1; // Return -1 if not found or an error occurs
+    }
+    
+
 
     public static void main(String[] args) {
         try {

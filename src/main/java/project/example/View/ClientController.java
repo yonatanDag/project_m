@@ -33,6 +33,8 @@ public class ClientController {
 
     private ArrayList<Client> clients;
 
+    //private int selectedClientId = -1;
+
     @FXML
     void clientIDonAction(ActionEvent event) {
 
@@ -48,18 +50,60 @@ public class ClientController {
 
     }
 
+    // @FXML
+    // void finishOnAction(ActionEvent event) throws IOException {
+    //     String enteredId = clientIDtxt.getText(); // Get the ID from the text field
+    //     String selectedFault = faultsCBox.getSelectionModel().getSelectedItem();
+
+    //     if (isClientIdValid(enteredId)) {
+    //         selectedClientId = Integer.parseInt(enteredId);
+    //         selectedFaultId = Integer.parseInt(selectedFault);
+
+    //         // If both IDs are valid, proceed to the next view
+    //         App.setRootClientTask("ClientTask", selectedClientId, selectedFaultId);
+    //     } else {
+    //         // If the ID is invalid, notify the user
+    //         System.out.println("Invalid ID or Fault. Please try again.");
+    //     }
+    // }
+
     @FXML
     void finishOnAction(ActionEvent event) throws IOException {
-        String enteredId = clientIDtxt.getText(); // Get the ID from the text field
-        if (isClientIdValid(enteredId)) {
-            // If the ID is valid, proceed to the next view or task
-            App.setRoot("ClientTask");
+        String enteredId = clientIDtxt.getText(); 
+        String selectedFaultDescription = faultsCBox.getSelectionModel().getSelectedItem();
+
+        if (isClientIdValid(enteredId) && selectedFaultDescription != null && !selectedFaultDescription.isEmpty()) {
+            int selectedClientId = Integer.parseInt(enteredId);
+
+            // Create a new instance of the DB class to interact with the database
+            DB database = new DB();
+            try {
+                // try to find the fault ID by the selected fault description
+                int selectedFaultId = database.getFaultIdByDescription(selectedFaultDescription);
+                if (selectedFaultId != -1) {
+                    // If the fault ID is valid, add a new task to the database
+                    boolean taskAdded = database.addTask(selectedClientId, selectedFaultId);
+                    if (taskAdded) {
+                        // If the task has been added successfully, proceed to the next view
+                        App.setRootClientTasks("ClientTask", selectedClientId);
+                    } else {
+                        System.out.println("Unable to add task. Please try again.");
+                    }
+                } else {
+                    System.out.println("Invalid fault selected. Please try again.");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace(); // Handle exceptions
+                System.out.println("Database error. Please try again.");
+            } finally {
+                // Always ensure the database connection is closed
+                database.disconnectSql();
+            }
         } else {
-            // If the ID is invalid, notify the user
-            // You can use a Label to show an error message or an Alert dialog
-            System.out.println("Invalid ID. Please try again.");
+            System.out.println("Invalid ID or Fault. Please try again.");
         }
     }
+
 
     public void initialize() {
         loadSpecializationNames();

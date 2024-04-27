@@ -30,7 +30,30 @@ public class App extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("/project/example/" + fxml + ".fxml"));
         return fxmlLoader.load();
     }
+
+    // a method to pass the technician ID to TechTasks view.
+    static void setRootTechTasks(String fxml, int technicianId) throws IOException {
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("/project/example/" + fxml + ".fxml"));
+        Parent root = loader.load();
+
+        // Get the controller and call the method to pass the technician ID
+        TechTaskController controller = loader.getController();
+        controller.runAlgorithmAndDisplayTasks(technicianId);
+
+        scene.setRoot(root);
+    }
     
+    // Method to pass the client ID to ClientTasks view.
+    static void setRootClientTasks(String fxml, int clientId) throws IOException {
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("/project/example/" + fxml + ".fxml"));
+        Parent root = loader.load();
+
+        // Get the controller and call the method to pass the client ID
+        ClientTaskController controller = loader.getController();
+        controller.setClientId(clientId);
+
+        scene.setRoot(root);
+    }
 
     public static void main(String[] args) {
         launch();

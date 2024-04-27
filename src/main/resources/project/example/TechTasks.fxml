@@ -2,6 +2,8 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.VBox?>
@@ -22,5 +24,14 @@
             <Font name="Bodoni MT Bold Italic" size="18.0" />
          </font>
       </Label>
+      <TableView fx:id="tasksTableView" prefHeight="200.0" prefWidth="200.0">
+        <columns>
+          <TableColumn fx:id="clientNameColumn" prefWidth="125.0" text="Client Name" />
+          <TableColumn fx:id="cityColumn" prefWidth="75.0" text="City" />
+            <TableColumn fx:id="faultColumn" prefWidth="125.0" text="Fault" />
+            <TableColumn fx:id="timeColumn" prefWidth="125.0" text="Time" />
+            <TableColumn fx:id="durationColumn" prefWidth="100.0" text="Duration (min)" />
+        </columns>
+      </TableView>
    </children>
 </VBox>

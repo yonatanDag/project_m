@@ -21,12 +21,16 @@ public class TechController {
 
     private ArrayList<Technician> technicians;
 
+    private int selectedTechnicianId = -1;
+
     @FXML
     void finishOnAction(ActionEvent event) throws IOException {
-        loadTechniciansData(); // Load data when finishing
+        loadTechniciansData();
         String enteredId = techIDtxt.getText();
         if (isTechnicianIdValid(enteredId)) {
-            App.setRoot("TechTasks");
+            selectedTechnicianId = Integer.parseInt(enteredId);
+            // Pass the selectedTechnicianId to the TechTaskController
+            App.setRootTechTasks("TechTasks", selectedTechnicianId);
         } else {
             System.out.println("Invalid ID. Please try again.");
         }

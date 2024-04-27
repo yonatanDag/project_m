@@ -85,6 +85,50 @@ public class Task {
         this.scheduledTime = scheduledTime;
     }
 
+    // Method to get the city from the task's client
+    public String getCity() {
+        return this.client.getCity().getCityName();
+    }
+
+    // Method to get the client name
+    public String getClientName() {
+        return this.client.getName();
+    }
+
+    // Method to get the fault description
+    public String getFaultDescription() {
+        return this.fault.getfDescription();
+    }
+
+    // Method to get the formatted scheduled time
+    public String getFormattedScheduledTime() {
+        if (this.scheduledTime != null) {
+            return this.scheduledTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        } else {
+            return "Not Scheduled";
+        }
+    }
+
+    // Assuming the Task object holds a reference to the Technician object
+    public String getTechnicianName() {
+        return this.assignedTechnician.getName(); // or however you retrieve the name
+    }
+
+    // If duration is stored as an integer or long, make sure to return a String
+    public String getDuration() {
+        if (this.fault != null) {
+            return String.valueOf(this.fault.getDuration());
+        } else {
+            return ""; // or some other default string
+        }
+    }
+
+    public int getFaultDuration() {
+        return this.fault.getDuration();
+    }
+
+    
+
     @Override
     public String toString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
