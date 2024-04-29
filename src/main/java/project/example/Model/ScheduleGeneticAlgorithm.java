@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import javafx.util.Pair;
 import project.example.Controller.DB;
 
 public class ScheduleGeneticAlgorithm {

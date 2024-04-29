@@ -1,4 +1,4 @@
-package project.example.View;
+package project.example.Controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -8,8 +8,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import project.example.Controller.DB;
 import project.example.Model.Technician;
+import project.example.View.App;
 
 public class TechController {
     

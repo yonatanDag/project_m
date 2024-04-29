@@ -1,4 +1,4 @@
-package project.example.View;
+package project.example.Controller;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -8,7 +8,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import project.example.Controller.DB;
 import project.example.Model.Schedule;
 import project.example.Model.ScheduleGeneticAlgorithm;
 import project.example.Model.Task;

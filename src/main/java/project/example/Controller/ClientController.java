@@ -1,4 +1,4 @@
-package project.example.View;
+package project.example.Controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -12,10 +12,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
-import project.example.Controller.DB;
 import project.example.Model.Client;
 import project.example.Model.Fault;
 import project.example.Model.Specialization;
+import project.example.View.App;
 
 public class ClientController {
 

@@ -1,10 +1,11 @@
-package project.example.View;
+package project.example.Controller;
 
 import java.io.IOException;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import project.example.View.App;
 
 
 public class PrimaryController {

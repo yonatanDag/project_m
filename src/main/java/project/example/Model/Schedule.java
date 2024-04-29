@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import javafx.util.Pair;
+
 public class Schedule {
 
     // This represents the scheduled tasks for each technician.
@@ -69,12 +71,21 @@ public class Schedule {
     }
 
     // functoin that add Task as is to the ArrayList of the Technician
-    public void addTask(Task task){
+    public void addTask(Task task) {
         Technician tech = task.getAssignedTechnician();
-        if(tech != null){
-            this.scheduling.get(tech).add(task);
+        if (tech != null) {
+            // Check if the list for the technician exists
+            ArrayList<Task> tasks = this.scheduling.get(tech);
+            if (tasks == null) {
+                // If not, initialize it
+                tasks = new ArrayList<>();
+                this.scheduling.put(tech, tasks);
+            }
+            // Add the task to the list
+            tasks.add(task);
         }
     }
+    
 
     public ArrayList<Technician> getTechnicians() {
         // Return a new ArrayList containing all technicians from the scheduling map
@@ -374,42 +385,42 @@ public class Schedule {
         }
     }
 
-    // Method to get sorted tasks based on the cumulative fitness of tasks for each technician
-    public ArrayList<Task> getSortedScheduledTasks(SpecializationService specService) {
-        // Create a map to store the total fitness for tasks of each technician
-        Map<Technician, Double> technicianFitnessMap = new HashMap<>();
-
-        FitnessCalculator fitnessCalculator = new FitnessCalculator();
-
-        // Populate the map with total fitness for each technician
-        for (Map.Entry<Technician, ArrayList<Task>> entry : scheduling.entrySet()) {
-            Technician tech = entry.getKey();
-            double totalFitness = 0.0;
-            for (Task task : entry.getValue()) {
-                // Assuming calculatetaskFitness method calculates fitness for a given task
-                totalFitness += fitnessCalculator.calculatetaskFitness(task, tech, tech.getCity(), specService);
+        // Method to get sorted tasks based on the cumulative fitness of tasks for each technician
+        public ArrayList<Task> getSortedScheduledTasks(SpecializationService specService) {
+            // Create a map to store the total fitness for tasks of each technician
+            Map<Technician, Double> technicianFitnessMap = new HashMap<>();
+    
+            FitnessCalculator fitnessCalculator = new FitnessCalculator();
+    
+            // Populate the map with total fitness for each technician
+            for (Map.Entry<Technician, ArrayList<Task>> entry : scheduling.entrySet()) {
+                Technician tech = entry.getKey();
+                double totalFitness = 0.0;
+                for (Task task : entry.getValue()) {
+                    // Assuming calculatetaskFitness method calculates fitness for a given task
+                    totalFitness += fitnessCalculator.calculatetaskFitness(task, tech, tech.getCity(), specService);
+                }
+                technicianFitnessMap.put(tech, totalFitness);
             }
-            technicianFitnessMap.put(tech, totalFitness);
+    
+            // convert map entries to a list and sort it based on the fitness value
+            ArrayList<Map.Entry<Technician, Double>> sortedTechnicians = new ArrayList<>(technicianFitnessMap.entrySet());
+            sortedTechnicians.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+    
+            // Create a new list to hold tasks sorted based on technician fitness
+            ArrayList<Task> sortedTasks = new ArrayList<>();
+    
+            // Add tasks to the list based on the sorted order of technicians
+            for (Map.Entry<Technician, Double> entry : sortedTechnicians) {
+                ArrayList<Task> tasksForTech = scheduling.get(entry.getKey());
+                // Optionally sort tasks within the same technician if needed
+                // tasksForTech.sort(comparator);
+                sortedTasks.addAll(tasksForTech);
+            }
+    
+            // Add unscheduled tasks at the end
+            sortedTasks.addAll(unscheduledTasks);
+    
+            return sortedTasks;
         }
-
-        // convert map entries to a list and sort it based on the fitness value
-        ArrayList<Map.Entry<Technician, Double>> sortedTechnicians = new ArrayList<>(technicianFitnessMap.entrySet());
-        sortedTechnicians.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
-
-        // Create a new list to hold tasks sorted based on technician fitness
-        ArrayList<Task> sortedTasks = new ArrayList<>();
-
-        // Add tasks to the list based on the sorted order of technicians
-        for (Map.Entry<Technician, Double> entry : sortedTechnicians) {
-            ArrayList<Task> tasksForTech = scheduling.get(entry.getKey());
-            // Optionally sort tasks within the same technician if needed
-            // tasksForTech.sort(comparator);
-            sortedTasks.addAll(tasksForTech);
-        }
-
-        // Add unscheduled tasks at the end
-        sortedTasks.addAll(unscheduledTasks);
-
-        return sortedTasks;
-    }
 }
