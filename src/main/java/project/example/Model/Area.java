@@ -1,7 +1,9 @@
 package project.example.Model;
 
 public class Area {
+    // the ID of the Area
     private int areaID;
+    // the name of the Area
     private String areaName;
     
     public Area(int areaID, String areaName) {
@@ -13,15 +15,7 @@ public class Area {
         return areaID;
     }
 
-    public void setAreaID(int areaID) {
-        this.areaID = areaID;
-    }
-
     public String getAreaName() {
         return areaName;
-    }
-
-    public void setAreaName(String areaName) {
-        this.areaName = areaName;
     }
 }

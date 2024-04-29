@@ -7,7 +7,8 @@ import java.util.ArrayList; // Import the ArrayList class
 import java.util.Calendar;
 
 public class DB {
-    private Connection connection; // the connection to the mySQL
+    // the connection to the mySQL
+    private Connection connection; 
 
     public DB() {
         this.connectSql(); // connect the database
@@ -164,7 +165,7 @@ public class DB {
                 }
 
                 if (techIndex != -1 && specIndex != -1) {
-                    SpecializationTechnician st = new SpecializationTechnician(technicianList.get(techIndex), specializationList.get(specIndex), specTechSet.getDouble(3), Calendar.getInstance().get(Calendar.YEAR)-specTechSet.getInt(4), null);
+                    SpecializationTechnician st = new SpecializationTechnician(technicianList.get(techIndex), specializationList.get(specIndex), specTechSet.getDouble(3), Calendar.getInstance().get(Calendar.YEAR)-specTechSet.getInt(4));
                     scList.add(st);
                     
                     // // Update the map in Specialization class

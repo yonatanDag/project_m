@@ -14,10 +14,9 @@ public class Schedule {
 
     // This represents the scheduled tasks for each technician.
     private Map<Technician, ArrayList<Task>> scheduling = new HashMap<>();
-
     // unscheduledFaults holds a list of tasks that have not been assigned to any technician yet.
     private ArrayList<Task> unscheduledTasks = new ArrayList<>();
-
+    // the fitness value of the Schedule
     private double fitness = -1;
 
     public Schedule(ArrayList<Technician> techList) {
@@ -33,11 +32,6 @@ public class Schedule {
         for (Technician technician : techList) {
             this.scheduling.put(technician, new ArrayList<Task>());
         }
-        this.unscheduledTasks = unscheduledTasks;
-    }
-
-    public Schedule(Map<Technician, ArrayList<Task>> scheduling, ArrayList<Task> unscheduledTasks) {
-        this.scheduling = scheduling;
         this.unscheduledTasks = unscheduledTasks;
     }
 
@@ -62,16 +56,8 @@ public class Schedule {
         return scheduling;
     }
 
-    public void setScheduling(Map<Technician, ArrayList<Task>> scheduling) {
-        this.scheduling = scheduling;
-    }
-
     public ArrayList<Task> getUnscheduledTasks() {
         return unscheduledTasks;
-    }
-
-    public void setUnscheduledTask(ArrayList<Task> unscheduledTasks) {
-        this.unscheduledTasks = unscheduledTasks;
     }
 
     public double getFitness() {
@@ -139,26 +125,6 @@ public class Schedule {
         LocalDateTime newTaskEndTime = newTaskStartTime.plusMinutes(newTask.getFault().getDuration());
 
         return newTaskEndTime.isBefore(workDayEnd) || newTaskEndTime.equals(workDayEnd);
-    }
-
-
-    // Retrieves all tasks in this schedule, both scheduled and unscheduled, as copies.
-    public ArrayList<Task> getAllTasks() {
-        ArrayList<Task> allTasks = new ArrayList<>();
-
-        // Iterate through each technician's scheduled tasks and add copies to the list
-        for (ArrayList<Task> tasks : scheduling.values()) {
-            for (Task task : tasks) {
-                allTasks.add(new Task(task)); // Add a copy of each task
-            }
-        }
-
-        // Add copies of all unscheduled tasks to the list
-        for (Task task : unscheduledTasks) {
-            allTasks.add(new Task(task)); // Add a copy of each task
-        }
-
-        return allTasks;
     }
 
     // function that get Technician and return his object in the current Schedule
@@ -255,7 +221,6 @@ public class Schedule {
             System.out.println("Attempted to remove a task at an invalid index or from an empty list.");
         }
 
-
         LocalDateTime scheduledTime;
         
         // update the Time for the other Tasks
@@ -331,7 +296,7 @@ public class Schedule {
         int attempts = 0;
 
         // loop that run on all the unscheduledTasks
-        while(!this.unscheduledTasks.isEmpty() && attempts < 150){
+        while(!this.unscheduledTasks.isEmpty() && attempts < 200){
             // gets randomly a Task
             int index = rand.nextInt(this.unscheduledTasks.size());
             Task curTask = this.unscheduledTasks.get(index);
@@ -409,7 +374,6 @@ public class Schedule {
         }
     }
 
-    // // function to return a sorted list of all scheduled tasks
     // Method to get sorted tasks based on the cumulative fitness of tasks for each technician
     public ArrayList<Task> getSortedScheduledTasks(SpecializationService specService) {
         // Create a map to store the total fitness for tasks of each technician

@@ -9,11 +9,16 @@ import java.util.Set;
 import project.example.Controller.DB;
 
 public class ScheduleGeneticAlgorithm {
+    // the Population size of the Genetic Algorithm(the number of Schedules in each Population)
     private int populationSize;
+    // the DB of the project
     private DB db;
+    // the maximum number of generations
     private int maxGenerations;
+    // the mutation Rate
     private double mutationRate;
     public static int countGenerations;
+    // the Population
     private Population population;
     private SpecializationService specService;
 
@@ -31,25 +36,12 @@ public class ScheduleGeneticAlgorithm {
         return populationSize;
     }
 
-
-    public void setPopulationSize(int populationSize) {
-        this.populationSize = populationSize;
-    }
-
     public int getMaxGenerations() {
         return maxGenerations;
     }
 
-    public void setMaxGenerations(int maxGenerations) {
-        this.maxGenerations = maxGenerations;
-    }
-
     public double getMutationRate() {
         return mutationRate;
-    }
-
-    public void setMutationRate(double mutationRate) {
-        this.mutationRate = mutationRate;
     }
 
     public Population getPopulation() {
@@ -58,11 +50,6 @@ public class ScheduleGeneticAlgorithm {
 
     public void setPopulation(Population population) {
         this.population = population;
-    }
-
-    // not necessery
-    public SpecializationService getSpecService() {
-        return specService;
     }
 
     // generate random population
@@ -77,15 +64,6 @@ public class ScheduleGeneticAlgorithm {
         }
         population.updateFitnessForAllSchedules(this.specService); // Update fitness for all schedules
         return population;
-    }
-
-    // checks if already looped the max amount of generations or got max fitness value
-    public boolean finishGeneration(Population pop) {
-        boolean checkMaxGen, checkMaxFitness;
-        // checks if number of current generations surpassed the max generations
-        checkMaxGen = ScheduleGeneticAlgorithm.countGenerations > this.maxGenerations;
-        checkMaxFitness = pop.getFittest().getFitness() > 200; // random number for now (change 100)!!!!!!!!!!!!!!
-        return (checkMaxGen || checkMaxFitness); // return true if at least one of the criterias are met
     }
 
     // get 1 Schedule and make random change in it

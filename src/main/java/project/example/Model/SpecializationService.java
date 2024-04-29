@@ -3,6 +3,7 @@ package project.example.Model;
 import java.util.ArrayList;
 
 public class SpecializationService {
+    // ArrayList of all of the Technicians and their Specializations
     private ArrayList<SpecializationTechnician> stList;
 
     public SpecializationService(ArrayList<SpecializationTechnician> stList) {
@@ -104,18 +105,5 @@ public class SpecializationService {
         }
 
         return 0; // this specialization does not have the highest rating for the technician
-    }
-
-    // function that gets Specialization, and return a ArrayList of Technicians
-    public ArrayList<Technician> getTechniciansForSpecialization(Specialization spec) {
-        ArrayList<Technician> suitableTechnicians = new ArrayList<>();
-        
-        for (SpecializationTechnician st : this.stList) {
-            if (st.getType().getIdS() == spec.getIdS() && !suitableTechnicians.contains(st.getTech())) {
-                suitableTechnicians.add(st.getTech());
-            }
-        }
-        
-        return suitableTechnicians;
     }
 }

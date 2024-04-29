@@ -25,14 +25,14 @@
             <Font name="Bodoni MT Bold Italic" size="18.0" />
          </font>
       </Label>
-      <TextField fx:id="clientIDtxt" onAction="#clientIDonAction" />
+      <TextField fx:id="clientIDtxt" />
       <Label text="Please chose the specialization and the fault">
          <font>
             <Font name="Bodoni MT Bold Italic" size="18.0" />
          </font>
       </Label>
-      <ComboBox fx:id="specializationCBox" onAction="#SpecOnAction" prefWidth="150.0" />
-      <ComboBox fx:id="faultsCBox" onAction="#FaultOnAction" prefWidth="150.0" />
+      <ComboBox fx:id="specializationCBox" prefWidth="150.0" />
+      <ComboBox fx:id="faultsCBox" prefWidth="150.0" />
       <Button fx:id="finishBtn" mnemonicParsing="false" onAction="#finishOnAction" text="Finish">
          <font>
             <Font name="Bodoni MT Bold" size="18.0" />

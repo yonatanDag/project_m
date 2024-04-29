@@ -24,7 +24,7 @@
             <Font name="Bodoni MT Bold Italic" size="18.0" />
          </font>
       </Label>
-      <TextField fx:id="techIDtxt" onAction="#techIDonAction" />
+      <TextField fx:id="techIDtxt" />
       <Button fx:id="finishBtn" mnemonicParsing="false" onAction="#finishOnAction" text="Finish">
          <font>
             <Font name="Bodoni MT Bold" size="18.0" />

@@ -1,8 +1,11 @@
 package project.example.Model;
 
 public class City {
+    // the ID of the City
     private int cityID;
+    // the name of the City
     private String cityName;
+    // the Area that the city is belong to
     private Area cityArea;
     
     public City(int cityID, String cityName, Area cityArea) {
@@ -15,23 +18,12 @@ public class City {
         return cityID;
     }
 
-    public void setCityID(int cityID) {
-        this.cityID = cityID;
-    }
-
     public String getCityName() {
         return cityName;
-    }
-
-    public void setCityName(String cityName) {
-        this.cityName = cityName;
     }
 
     public Area getCityArea() {
         return cityArea;
     }
 
-    public void setCityArea(Area cityArea) {
-        this.cityArea = cityArea;
-    }
 }

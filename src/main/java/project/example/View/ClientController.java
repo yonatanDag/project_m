@@ -33,23 +33,6 @@ public class ClientController {
 
     private ArrayList<Client> clients;
 
-    //private int selectedClientId = -1;
-
-    @FXML
-    void clientIDonAction(ActionEvent event) {
-
-    }
-
-    @FXML
-    void FaultOnAction(ActionEvent event) {
-
-    }
-
-    @FXML
-    void SpecOnAction(ActionEvent event) {
-
-    }
-
     // @FXML
     // void finishOnAction(ActionEvent event) throws IOException {
     //     String enteredId = clientIDtxt.getText(); // Get the ID from the text field

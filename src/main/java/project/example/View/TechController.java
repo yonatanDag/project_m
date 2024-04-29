@@ -36,11 +36,6 @@ public class TechController {
         }
     }
 
-    @FXML
-    void techIDonAction(ActionEvent event) {
-
-    }
-
     private void loadTechniciansData() {
         DB database = new DB();
         try {

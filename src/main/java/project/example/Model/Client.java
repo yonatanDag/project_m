@@ -1,9 +1,13 @@
 package project.example.Model;
 
 public class Client {
+    // the ID of the Client
     private int idC;
+    // the name of the Client
     private String name;
+    // the city that the Client live at
     private City city;
+    // if the Client is premium
     private boolean premium;
 
     public Client(int idC, String name, City city, boolean premium) {
@@ -17,32 +21,15 @@ public class Client {
         return idC;
     }
 
-    public void setIdC(int idC) {
-        this.idC = idC;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public City getCity() {
         return city;
     }
 
-    public void setCity(City city) {
-        this.city = city;
-    }
-
     public boolean isPremium() {
         return premium;
     }
-
-    public void setPremium(boolean premium) {
-        this.premium = premium;
-    }
-    
 }

@@ -6,24 +6,16 @@ import java.util.Comparator;
 
 public class Population {
 
+    // the ArrayList of the Schedules of the Population
     private ArrayList<Schedule> schedules;
+    // the size of the Population(num of Schedules)
     private int populationSize;
-
 
     public Population(int populationSize) {
         this.populationSize = populationSize;
         this.schedules = new ArrayList<Schedule>(populationSize); // Initialize the schedules list
     }
     
-    // Constructor to initialize the population with a given size
-    public Population(int populationSize, ArrayList<Technician> techList) {
-        this.populationSize = populationSize;
-        this.schedules = new ArrayList<Schedule>(populationSize); // Initialize the schedules list
-        for (int i = 0; i < populationSize; i++) {
-            this.schedules.add(new Schedule(techList)); // Add a new Schedule object to the list
-        }
-    }
-
     // Get a schedule from the population
     public Schedule getSchedule(int index) {
         return schedules.get(index);
@@ -32,28 +24,14 @@ public class Population {
     public void addSchedule(Schedule schedule) {
         schedules.add(schedule);
     }
-    
-
-    // Get the size of the population
-    public int size() {
-        return schedules.size();
-    }
 
     // Getters and setters
     public ArrayList<Schedule> getSchedules() {
         return schedules;
     }
 
-    public void setSchedules(ArrayList<Schedule> schedules) {
-        this.schedules = schedules;
-    }
-
     public int getPopulationSize() {
         return populationSize;
-    }
-
-    public void setPopulationSize(int populationSize) {
-        this.populationSize = populationSize;
     }
 
     // function that get a Schedule an it remove it from the Population
