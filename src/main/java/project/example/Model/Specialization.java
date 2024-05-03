@@ -26,5 +26,4 @@ public class Specialization {
     public String getDescription() {
         return descriptionS;
     }
-   
 }

@@ -3,10 +3,8 @@ package project.example.Model;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 
-import javafx.util.Pair;
 import project.example.Controller.DB;
 
 public class ScheduleGeneticAlgorithm {
@@ -22,6 +20,8 @@ public class ScheduleGeneticAlgorithm {
     // the Population
     private Population population;
     private SpecializationService specService;
+
+    private static int maxAttempts = 30;
 
     public ScheduleGeneticAlgorithm(int populationSize, DB db, int maxGenerations, double mutationRate) throws ClassNotFoundException, SQLException {
         this.populationSize = populationSize;
@@ -70,38 +70,38 @@ public class ScheduleGeneticAlgorithm {
     // get 1 Schedule and make random change in it
     public void mutation(Schedule schedule){
         ArrayList<Technician> techList = new ArrayList<>(schedule.getScheduling().keySet());
-        int rnd1, rnd2;
 
         if (techList.size() < 2) return; // Need at least two technicians for mutation
     
-        Random random = new Random();
-        Technician tech1 = techList.get(random.nextInt(techList.size()));
+        // Randomly select a technician with tasks
+        int rndTechIndex = (int) (Math.random() * techList.size());
+        Technician tech1 = techList.get(rndTechIndex);
         ArrayList<Task> tasksTech1 = new ArrayList<>(schedule.getTaskAssignedToTechnician(tech1));
         
         // loop that make sure that tech1 have Scheduled Tasks
         while (tasksTech1.isEmpty()){
-            rnd1 = (int)(Math.random() * techList.size());
-            tech1 = techList.get(rnd1);
+            rndTechIndex = (int) (Math.random() * techList.size());
+            tech1 = techList.get(rndTechIndex);
             tasksTech1 = new ArrayList<>(schedule.getTaskAssignedToTechnician(tech1));
         } 
     
-        Technician tech2;
-        rnd2 = (int)(Math.random() * techList.size());
-        tech2 = techList.get(rnd2); 
+        // Randomly select another technician
+        int rndTechIndex2 = (int) (Math.random() * techList.size());
+        Technician tech2 = techList.get(rndTechIndex2);
 
-        // Randomly select a task from tech1
-        rnd1 = (int)(Math.random() * tasksTech1.size());
-        Task task1 = tasksTech1.get(rnd1);
+        // Randomly select a task from the first technician
+        int taskIndex1 = (int) (Math.random() * tasksTech1.size());
+        Task task1 = tasksTech1.get(taskIndex1);
         
         int attempts = 0;
         
         // loop that make sure that tech2 is able and avaible to fix task1 and they not are the same Technician
-        while((((this.specService.isTechSpec(tech2, task1.getRequiredSpecialization()) != true) || (schedule.isTechAvailable(tech2, task1) != true)) || (tech2.getIdT() == tech1.getIdT())) && (attempts < 30)){
-            rnd2 = (int)(Math.random() * techList.size());
-            tech2 = techList.get(rnd2);
+        while((((this.specService.isTechSpec(tech2, task1.getRequiredSpecialization()) != true) || (schedule.isTechAvailable(tech2, task1) != true)) || (tech2.getIdT() == tech1.getIdT())) && (attempts < maxAttempts)){
+            rndTechIndex2 = (int) (Math.random() * techList.size());
+            tech2 = techList.get(rndTechIndex2);
             attempts++;
         }
-        if (attempts < 30) {
+        if (attempts >= maxAttempts) {
             return;
         }
 
@@ -110,41 +110,42 @@ public class ScheduleGeneticAlgorithm {
         // case that lst2 has no Tasks
         if(lst2.size() == 0){
             // remove the Task from the tech1 ArrayList and adding it to tech2
-            schedule.removeScheduledTask(rnd1, tech1);
+            schedule.removeScheduledTask(taskIndex1, tech1);
             schedule.addScheduledTask(task1, tech2);
         }
         // case that lst2 has also Tasks
         else{
             // the Task of the 2nd Technician 
-            rnd2 = (int)(Math.random() * lst2.size());
-            Task task2 = lst2.get(rnd2);
+            int taskIndex2 = (int) (Math.random() * lst2.size());
+            Task task2 = lst2.get(taskIndex2);
 
             attempts = 0;
 
             // loop that make sure that tech1 is suit to fix task2
-            while(((this.specService.isTechSpec(tech1, task2.getRequiredSpecialization()) != true) || (schedule.isTechAvailable(tech1, task2) != true)) && (attempts < 30)){
-                rnd2 = (int)(Math.random() * lst2.size());
-                task2 = lst2.get(rnd2);
+            while(((this.specService.isTechSpec(tech1, task2.getRequiredSpecialization()) != true) || (schedule.isTechAvailable(tech1, task2) != true)) && (attempts < maxAttempts)){
+                taskIndex2 = (int) (Math.random() * lst2.size());
+                task2 = lst2.get(taskIndex2);
                 attempts++;
             }
             // in case there is a task of Technician2 that Technician1 can fix
-            if (attempts < 30) {
+            if (attempts < maxAttempts) {
                 // now we are removing the 2 Tasks, update the ScheduledTime of all of the other
                 // ScheduledTasks and then adding the 2 Tasks
-                schedule.removeScheduledTask(rnd1, tech1);
-                schedule.removeScheduledTask(rnd2, tech2);
+                schedule.removeScheduledTask(taskIndex1, tech1);
+                schedule.removeScheduledTask(taskIndex2, tech2);
                 schedule.addScheduledTask(task1, tech2);
                 schedule.addScheduledTask(task2, tech1);
             }
             // in case there is no task of Technician2 that Technician1 can fix
             else{
                 // remove the Task from the tech1 ArrayList and adding it to tech2
-                schedule.removeScheduledTask(rnd1, tech1);
+                schedule.removeScheduledTask(taskIndex1, tech1);
                 schedule.addScheduledTask(task1, tech2);
             }
         }
     }
 
+    // function that implements a roulette wheel selection mechanism to select a schedule from the population.
     public Schedule createRouletteWheel() {
         // sum of all the fitness of the schedules in the population
         double sum = this.population.sumFitness();
@@ -182,9 +183,8 @@ public class ScheduleGeneticAlgorithm {
         return schedule;
     }
 
-    
+    // function that performs a crossover operation between two parent schedules to produce a new offspring schedule.
     public Schedule crossover(Schedule parent1, Schedule parent2){
-        Random rand = new Random();
         int i = 0;
         ArrayList<Technician> techList = parent1.getTechnicians();
         Schedule offspring = new Schedule(techList);
@@ -231,7 +231,7 @@ public class ScheduleGeneticAlgorithm {
                     // in case of there are suitable Technicians
                     if(!suitableTechnicians.isEmpty()){
                         // gets randomly a Technician that is suitable for the task
-                        int index = rand.nextInt(suitableTechnicians.size());
+                        int index = (int) (Math.random() * suitableTechnicians.size());
                         Technician curTechnician = suitableTechnicians.get(index);
                         // add the curTask 
                         offspring.addScheduledTask(curTask, curTechnician);
@@ -295,6 +295,7 @@ public class ScheduleGeneticAlgorithm {
         this.setPopulation(nextGen);
     }
 
+    //  function that runs the evolutionary process of generating new populations until the maximum number of generations is reached.
     public void evolutionCycle(){
         for(int i = 1; i < this.getMaxGenerations(); i++){
             System.out.println("Generation number: " + i);
@@ -303,14 +304,10 @@ public class ScheduleGeneticAlgorithm {
             this.generateNextPopulation();
         }
 
-        System.out.println("Generation number: " + this.getMaxGenerations());
-        System.out.println("the Population size: " + this.population.getSchedules().size());
-
         // print the best Schedule
         Schedule best = this.population.getFittest();
         System.out.println();
         System.out.println("the fitness is: " + best.getFitness());
         best.printSchedule();
     }
-
 }

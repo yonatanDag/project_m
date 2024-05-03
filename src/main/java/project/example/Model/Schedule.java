@@ -8,9 +8,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
-
-import javafx.util.Pair;
 
 public class Schedule {
 
@@ -20,6 +17,11 @@ public class Schedule {
     private ArrayList<Task> unscheduledTasks = new ArrayList<>();
     // the fitness value of the Schedule
     private double fitness = -1;
+
+    private static int sameCityTime = 15;
+    private static int sameAreaTime = 40;
+    private static int difAreaTime = 90;
+    private static int maxAttempts = 400;
 
     public Schedule(ArrayList<Technician> techList) {
         this.scheduling = new HashMap<>();
@@ -120,12 +122,12 @@ public class Schedule {
         long travelTime = 0;
         if (lastTask.getClient().getCity().getCityID() != newTask.getClient().getCity().getCityID()) {
             if (lastTask.getClient().getCity().getCityArea().getAreaID() == newTask.getClient().getCity().getCityArea().getAreaID()) {
-                travelTime = 40;
+                travelTime = sameAreaTime;
             } else {
-                travelTime = 90;
+                travelTime = difAreaTime;
             }
         } else {
-            travelTime = 15;
+            travelTime = sameCityTime;
         }
 
         // calculate the prospective start time for the new task, considering travel time
@@ -162,7 +164,7 @@ public class Schedule {
         return null; // Return null if no matching technician is found
     }
     
-
+    // function that Adds a task to the scheduling list of a given technician. 
     public void addScheduledTask(Task task, Technician technician){
         LocalDateTime scheduledTime;
         Technician tech = getTechnician(technician);
@@ -199,16 +201,16 @@ public class Schedule {
                 // checks if the 2 Tasks(the previous Task and the current Task) are in the same City
                 if(prevTask.getClient().getCity().getCityID() == task.getClient().getCity().getCityID()){
                     // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
-                    scheduledTime = prevTask.getScheduledTime().plus(duration).plusMinutes(15);
+                    scheduledTime = prevTask.getScheduledTime().plus(duration).plusMinutes(sameCityTime);
                 }
                 else{
                     // checks if the 2 Tasks(the previous Task and the current Task) are in the same Area 
                     if(prevTask.getClient().getCity().getCityArea().getAreaID() == task.getClient().getCity().getCityArea().getAreaID()){
                         // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
-                        scheduledTime = prevTask.getScheduledTime().plus(duration).plusMinutes(40); 
+                        scheduledTime = prevTask.getScheduledTime().plus(duration).plusMinutes(sameAreaTime); 
                     }
                     else{
-                        scheduledTime = prevTask.getScheduledTime().plus(duration).plusMinutes(90);   
+                        scheduledTime = prevTask.getScheduledTime().plus(duration).plusMinutes(difAreaTime);   
                     }
                 }
             }
@@ -218,6 +220,7 @@ public class Schedule {
         task.setAssignedTechnician(tech);
     }
 
+    // function that removes a task to the scheduling list of a given technician. 
     public void removeScheduledTask(int index, Technician tech){
         ArrayList<Task> lst1 = this.getTaskAssignedToTechnician(tech);
 
@@ -229,7 +232,7 @@ public class Schedule {
             lst1.remove(lst1.get(index));
         } else {
             // Handle the scenario where the task cannot be removed because the index is invalid
-            System.out.println("Attempted to remove a task at an invalid index or from an empty list.");
+            //System.out.println("Attempted to remove a task at an invalid index or from an empty list.");
         }
 
         LocalDateTime scheduledTime;
@@ -249,18 +252,18 @@ public class Schedule {
                 Task curTask = lst1.get(idx);
 
                 // checks if the 2 Tasks(the previous Task and the current Task) are in the same City
-                if(prevTask.getClient().getCity().equals(curTask.getClient().getCity())){
+                if(prevTask.getClient().getCity().getCityID() == curTask.getClient().getCity().getCityID()){
                     // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
-                    scheduledTime = scheduledTime.plusMinutes(15);
+                    scheduledTime = scheduledTime.plusMinutes(sameCityTime);
                 }
                 else{
                     // checks if the 2 Tasks(the previous Task and the current Task) are in the same Area 
                     if(prevTask.getClient().getCity().getCityArea().getAreaID() == curTask.getClient().getCity().getCityArea().getAreaID()){
                         // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
-                        scheduledTime = scheduledTime.plusMinutes(40); 
+                        scheduledTime = scheduledTime.plusMinutes(sameAreaTime); 
                     }
                     else{
-                        scheduledTime = scheduledTime.plusMinutes(90);   
+                        scheduledTime = scheduledTime.plusMinutes(difAreaTime);   
                     }
                 }
                 curTask.setScheduledTime(scheduledTime);
@@ -281,16 +284,16 @@ public class Schedule {
                     // checks if the 2 Tasks(the previous Task and the current Task) are in the same City
                     if(prevTask.getClient().getCity().getCityID() == curTask.getClient().getCity().getCityID()){
                         // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
-                        scheduledTime = scheduledTime.plusMinutes(15);
+                        scheduledTime = scheduledTime.plusMinutes(sameCityTime);
                     }
                     else{
                         // checks if the 2 Tasks(the previous Task and the current Task) are in the same Area 
                         if(prevTask.getClient().getCity().getCityArea().getAreaID() == curTask.getClient().getCity().getCityArea().getAreaID()){
                             // define the scheduleTime as the Time of the previous ScheduledTime + the Duration that it takes to fix the Fault and 15 minutes of Driving
-                            scheduledTime = scheduledTime.plusMinutes(40); 
+                            scheduledTime = scheduledTime.plusMinutes(sameAreaTime); 
                         }
                         else{
-                            scheduledTime = scheduledTime.plusMinutes(90);   
+                            scheduledTime = scheduledTime.plusMinutes(difAreaTime);   
                         }
                     }
                     curTask.setScheduledTime(scheduledTime);
@@ -301,15 +304,15 @@ public class Schedule {
         }
     }
 
+    // function that generates a random schedule by attempting to assign tasks from a list of unscheduled tasks to suitable technicians.
     public void generateRandomSchedule(ArrayList<SpecializationTechnician> specTechList) {
         SpecializationService specService = new SpecializationService(specTechList);
-        Random rand = new Random();
         int attempts = 0;
 
         // loop that run on all the unscheduledTasks
-        while(!this.unscheduledTasks.isEmpty() && attempts < 200){
+        while(!this.unscheduledTasks.isEmpty() && attempts < maxAttempts){
             // gets randomly a Task
-            int index = rand.nextInt(this.unscheduledTasks.size());
+            int index = (int) (Math.random() * this.unscheduledTasks.size());
             Task curTask = this.unscheduledTasks.get(index);
 
             ArrayList<Technician> suitableTechnicians = new ArrayList<>();
@@ -324,7 +327,7 @@ public class Schedule {
             // in case of there are suitable Technicians
             if(!suitableTechnicians.isEmpty()){
                 // gets randomly a Technician that is suitable for the task
-                int index2 = rand.nextInt(suitableTechnicians.size());
+                int index2 = (int) (Math.random() * suitableTechnicians.size());
                 Technician curTechnician = suitableTechnicians.get(index2);
                 // add the curTask 
                 addScheduledTask(curTask, curTechnician);
@@ -335,6 +338,7 @@ public class Schedule {
         }
     }
 
+    // function that retrieves all tasks assigned to a specific client across all technicians, both scheduled and unscheduled.
     public ArrayList<Task> getTasksForClient(int clientId) {
         ArrayList<Task> tasksForClient = new ArrayList<>();
 

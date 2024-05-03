@@ -11,19 +11,35 @@ import project.example.View.App;
 public class PrimaryController {
 
     @FXML
-    private Button clientBtn;
+    private Button adminBtn;
+
+    @FXML
+    private Button ClientViewBtn;
+
+    @FXML
+    private Button clientAddBtn;
 
     @FXML
     private Button techBtn;
 
     @FXML
-    void clickBtnClient(ActionEvent event) throws IOException {
-        App.setRoot("ClientView");
+    void adminClick(ActionEvent event) throws IOException {
+        App.setRoot("AdminView");
+    }
+
+    @FXML
+    void clickAddBtn(ActionEvent event) throws IOException {
+        App.setRoot("ClientAddView");
     }
 
     @FXML
     void clickBtnTech(ActionEvent event) throws IOException {
         App.setRoot("TechView");
+    }
+
+    @FXML
+    void clickViewBtn(ActionEvent event) throws IOException {
+        App.setRoot("ClientTaskView");
     }
 
 }

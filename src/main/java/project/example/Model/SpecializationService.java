@@ -99,11 +99,9 @@ public class SpecializationService {
                 highestRating = currentRating;
             }
         }   
-
         if (isSpecializedInSpec && specRating >= highestRating) {
             return 1; // this specialization has the highest rating for the technician
         }
-
         return 0; // this specialization does not have the highest rating for the technician
     }
 }

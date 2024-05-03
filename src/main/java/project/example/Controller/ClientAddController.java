@@ -17,7 +17,7 @@ import project.example.Model.Fault;
 import project.example.Model.Specialization;
 import project.example.View.App;
 
-public class ClientController {
+public class ClientAddController {
 
     @FXML
     private TextField clientIDtxt;
@@ -33,26 +33,9 @@ public class ClientController {
 
     private ArrayList<Client> clients;
 
-    // @FXML
-    // void finishOnAction(ActionEvent event) throws IOException {
-    //     String enteredId = clientIDtxt.getText(); // Get the ID from the text field
-    //     String selectedFault = faultsCBox.getSelectionModel().getSelectedItem();
-
-    //     if (isClientIdValid(enteredId)) {
-    //         selectedClientId = Integer.parseInt(enteredId);
-    //         selectedFaultId = Integer.parseInt(selectedFault);
-
-    //         // If both IDs are valid, proceed to the next view
-    //         App.setRootClientTask("ClientTask", selectedClientId, selectedFaultId);
-    //     } else {
-    //         // If the ID is invalid, notify the user
-    //         System.out.println("Invalid ID or Fault. Please try again.");
-    //     }
-    // }
-
     @FXML
     void finishOnAction(ActionEvent event) throws IOException {
-        String enteredId = clientIDtxt.getText(); 
+        String enteredId = clientIDtxt.getText();
         String selectedFaultDescription = faultsCBox.getSelectionModel().getSelectedItem();
 
         if (isClientIdValid(enteredId) && selectedFaultDescription != null && !selectedFaultDescription.isEmpty()) {
@@ -67,8 +50,8 @@ public class ClientController {
                     // If the fault ID is valid, add a new task to the database
                     boolean taskAdded = database.addTask(selectedClientId, selectedFaultId);
                     if (taskAdded) {
-                        // If the task has been added successfully, proceed to the next view
-                        App.setRootClientTasks("ClientTask", selectedClientId);
+                        // Redirect back to primary view on successful task addition
+                        App.setRoot("primary");
                     } else {
                         System.out.println("Unable to add task. Please try again.");
                     }
@@ -87,7 +70,6 @@ public class ClientController {
         }
     }
 
-
     public void initialize() {
         loadSpecializationNames();
         setupSpecializationChangeListener();
@@ -98,9 +80,11 @@ public class ClientController {
         DB database = new DB(); // Create a new instance of DB.
         ArrayList<Specialization> specializations;
         try {
-            specializations = database.loadSpecializations(); // Call the method that loads specializations from the database.
+            specializations = database.loadSpecializations(); // Call the method that loads specializations from the
+                                                              // database.
             // Map the Specialization objects to their names and collect to a list.
-            List<String> specializationNames = specializations.stream().map(Specialization::getNameS).collect(Collectors.toList());
+            List<String> specializationNames = specializations.stream().map(Specialization::getNameS)
+                    .collect(Collectors.toList());
             // Convert the list to an observable list and set it to the ComboBox.
             specializationCBox.setItems(FXCollections.observableArrayList(specializationNames));
         } catch (SQLException | ClassNotFoundException e) {
@@ -124,12 +108,15 @@ public class ClientController {
         try {
             ArrayList<Specialization> specializations = database.loadSpecializations();
             // Find the selected specialization object based on the name
-            Specialization selectedSpecialization = specializations.stream().filter(s -> s.getNameS().equals(specializationName)).findFirst().orElse(null);
+            Specialization selectedSpecialization = specializations.stream()
+                    .filter(s -> s.getNameS().equals(specializationName)).findFirst().orElse(null);
 
             if (selectedSpecialization != null) {
                 ArrayList<Fault> faults = database.loadFaults();
                 // Filter faults by the selected specialization
-                List<String> faultNames = faults.stream().filter(f -> f.getCfSpecialization().getIdS() == selectedSpecialization.getIdS()).map(Fault::getfDescription).collect(Collectors.toList());
+                List<String> faultNames = faults.stream()
+                        .filter(f -> f.getCfSpecialization().getIdS() == selectedSpecialization.getIdS())
+                        .map(Fault::getfDescription).collect(Collectors.toList());
                 faultsCBox.setItems(FXCollections.observableArrayList(faultNames));
             }
         } catch (SQLException | ClassNotFoundException e) {

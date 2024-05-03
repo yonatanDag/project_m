@@ -10,6 +10,10 @@ public class DB {
     // the connection to the mySQL
     private Connection connection; 
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     public DB() {
         this.connectSql(); // connect the database
     }
@@ -167,16 +171,6 @@ public class DB {
                 if (techIndex != -1 && specIndex != -1) {
                     SpecializationTechnician st = new SpecializationTechnician(technicianList.get(techIndex), specializationList.get(specIndex), specTechSet.getDouble(3), Calendar.getInstance().get(Calendar.YEAR)-specTechSet.getInt(4));
                     scList.add(st);
-                    
-                    // // Update the map in Specialization class
-                    // Specialization specialization = specializationList.get(specIndex);
-                    // Technician technician = technicianList.get(techIndex);
-                    // Map<Specialization, List<Technician>> techniciansMap = specialization.getTechniciansMap();
-                    // if (!techniciansMap.containsKey(specialization)) {
-                    //     techniciansMap.put(specialization, new ArrayList<>());
-                    // }
-                    // techniciansMap.get(specialization).add(technician);
-                    // specialization.setTechniciansMap(techniciansMap);
                 }
             }
         }
@@ -255,8 +249,110 @@ public class DB {
         }
         return -1; // Return -1 if not found or an error occurs
     }
+
+    public ArrayList<Task> getTasksForClientScheduledTomorrow(int clientId) throws ClassNotFoundException {
+        ArrayList<Task> tasks = new ArrayList<>();
+        String query = "SELECT t.taskID, t.description, st.technicianID, st.scheduledTime, st.rating, c.clientID, p.firstName, p.lastName, p.cityID, c.isPremium, " +
+                       "f.faultID, f.specializationID, f.description AS faultDescription, f.duration, f.urgencyLevel, " +
+                       "tech.visitPrice, tp.firstName AS techFirstName, tp.lastName AS techLastName, tp.cityID AS techCityID " +
+                       "FROM task t " +
+                       "JOIN scheduled_task st ON t.taskID = st.taskID " +
+                       "JOIN client c ON t.clientID = c.clientID " +
+                       "JOIN person p ON c.clientID = p.personID " +
+                       "JOIN fault f ON t.faultID = f.faultID " +
+                       "JOIN technician tech ON st.technicianID = tech.technicianID " +
+                       "JOIN person tp ON tech.technicianID = tp.personID " +
+                       "WHERE t.clientID = ? AND DATE(st.scheduledTime) = DATE(NOW() + INTERVAL 1 DAY);";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, clientId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                City city = loadCityById(rs.getInt("techCityID"));
+                Specialization spec = loadSpecializationById(rs.getInt("specializationID"));
+                Client client = new Client(rs.getInt("clientID"), rs.getString("firstName") + " " + rs.getString("lastName"), city, rs.getBoolean("isPremium"));
+                Fault fault = new Fault(rs.getInt("faultID"), spec, rs.getString("faultDescription"), rs.getInt("duration"), rs.getInt("urgencyLevel"));
+                String techName = rs.getString("techFirstName") + " " + rs.getString("techLastName");
+                Technician technician = new Technician(rs.getInt("technicianID"), techName, city, rs.getDouble("visitPrice"));
+                Task task = new Task(rs.getInt("taskID"), client, fault, rs.getTimestamp("scheduledTime").toLocalDateTime());
+                task.setAssignedTechnician(technician);
+                task.setScheduledTime(rs.getTimestamp("scheduledTime").toLocalDateTime());
+                tasks.add(task);
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return tasks;
+    }
     
 
+    public City loadCityById(int cityId) throws SQLException, ClassNotFoundException {
+        City city = null;
+        String query = "SELECT cityID, cityName, areaID FROM city WHERE cityID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, cityId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int areaId = rs.getInt("areaID");
+                ArrayList<Area> lst = loadAreas();  // Assuming you have a method to load Area
+                Area area = lst.get(areaId-1);
+                city = new City(rs.getInt("cityID"), rs.getString("cityName"), area);
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL error when fetching city: " + e.getMessage());
+            throw e;
+        }
+        return city;
+    }
+
+    public Specialization loadSpecializationById(int specializationId) throws SQLException {
+        Specialization specialization = null;
+        String query = "SELECT specializationID, specializationName, descriptionS FROM specialization WHERE specializationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, specializationId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                specialization = new Specialization(
+                    rs.getInt("specializationID"),
+                    rs.getString("specializationName"),
+                    rs.getString("descriptionS")
+                );
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL error when fetching specialization: " + e.getMessage());
+            throw e;
+        }
+        return specialization;
+    }
+
+    public ArrayList<Task> getTasksForTechnicianScheduledTomorrow(int technicianId) throws ClassNotFoundException {
+        ArrayList<Task> tasks = new ArrayList<>();
+        String query = "SELECT t.taskID, t.description, st.scheduledTime, st.rating, c.clientID, p.firstName, p.lastName, p.cityID, c.isPremium, " +
+                       "f.faultID, f.specializationID, f.description AS faultDescription, f.duration, f.urgencyLevel " +
+                       "FROM scheduled_task st " +
+                       "JOIN task t ON st.taskID = t.taskID " +
+                       "JOIN client c ON t.clientID = c.clientID " +
+                       "JOIN person p ON c.clientID = p.personID " +
+                       "JOIN fault f ON t.faultID = f.faultID " +
+                       "WHERE st.technicianID = ? AND DATE(st.scheduledTime) = DATE(NOW() + INTERVAL 1 DAY);";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, technicianId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                City city = loadCityById(rs.getInt("cityID"));
+                Specialization spec = loadSpecializationById(rs.getInt("specializationID"));
+                Client client = new Client(rs.getInt("clientID"), rs.getString("firstName") + " " + rs.getString("lastName"), city, rs.getBoolean("isPremium"));
+                Fault fault = new Fault(rs.getInt("faultID"), spec, rs.getString("faultDescription"), rs.getInt("duration"), rs.getInt("urgencyLevel"));
+                Task task = new Task(rs.getInt("taskID"), client, fault, rs.getTimestamp("scheduledTime").toLocalDateTime());
+                task.setScheduledTime(rs.getTimestamp("scheduledTime").toLocalDateTime());
+                tasks.add(task);
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return tasks;
+    }
 
     public static void main(String[] args) {
         try {
@@ -285,20 +381,7 @@ public class DB {
 
             System.out.println("\nSpecializations:");
             for (Specialization specialization : specializationList) {
-                System.out.println("ID: " + specialization.getIdS() + ", Name: " + specialization.getNameS()
-                        + ", Description: " + specialization.getDescription());
-
-                // // Print technicians for this specialization
-                // Map<Specialization, List<Technician>> techniciansMap = specialization.getTechniciansMap();
-                // if (techniciansMap.containsKey(specialization)) {
-                //     List<Technician> technicians = techniciansMap.get(specialization);
-                //     for (Technician technician : technicians) {
-                //         System.out.println(
-                //                 " - Technician ID: " + technician.getIdT() + ", Name: " + technician.getName());
-                //     }
-                // } else {
-                //     System.out.println("No technicians found for this specialization.");
-                // }
+                System.out.println("ID: " + specialization.getIdS() + ", Name: " + specialization.getNameS() + ", Description: " + specialization.getDescription());
             }
 
             System.out.println("\nClients:");

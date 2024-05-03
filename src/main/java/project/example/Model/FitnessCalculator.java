@@ -8,20 +8,34 @@ import java.util.Map.Entry;
 
 public class FitnessCalculator {
 
+    private static int sameCityTime = 15;
+    private static int sameAreaTime = 40;
+    private static int difAreaTime = 90;
+    private static double notSuit = -10;
+    private static double sameCity = 2.5;
+    private static double sameArea = 1.5;
+    private static double difArea = -2;
+    private static double premiumScore = 1;
+    private static double urgencyWeight = 0.1;
+    private static double zero = 0;
+    private static double techLevelWeight = 0.1;
+    private static double waitingWeight = 0.05;
+
+    // Method that calculate the number of minutes it will take to come from the City to the Task
     private int numOfDriving(City city, Task task){
+        int time = difAreaTime;
         if(city.getCityID() == task.getClient().getCity().getCityID()){
-            return 15;
+            time =  sameCityTime;
         }
         else{
             if(city.getCityArea().getAreaID() == task.getClient().getCity().getCityArea().getAreaID()){
-                return 40;
-            }
-            else{
-                return 90;
+                time =  sameAreaTime;
             }
         }
+        return time;
     }
 
+    // Method that calculate the number of days from the ReportedTime of the Task
     private int calculateTaskWaiting(Task task) {
         LocalDateTime now = LocalDateTime.now();
 
@@ -31,12 +45,13 @@ public class FitnessCalculator {
         return daysSinceReported;
     }
 
+    // Method that calculate the fitness of the Task
     public double calculatetaskFitness(Task task, Technician tech, City city, SpecializationService specService){
-        double taskFitness = 0.0;
+        double taskFitness = zero;
 
         // checks if the Technician is fitting to the Specialization of the task 
         if(!specService.isTechSpec(tech, task.getRequiredSpecialization())){
-             return -10.0;
+             return notSuit;
         }
 
         // Create a LocalDateTime for the deadline time on the same day as the task
@@ -44,56 +59,56 @@ public class FitnessCalculator {
 
         // check if the Task (including its duration) finishes before 19:30
         if (task.getScheduledTime().plusMinutes(task.getFault().getDuration()).isAfter(deadline)) {
-            return -10;
+            return notSuit;
         }
 
         //checks if the Client and the Technician are not from the same area
         if(task.getClient().getCity().getCityArea().getAreaID() != city.getCityArea().getAreaID()){
-            taskFitness -= 2;
+            taskFitness += difArea;
         }
         else{ // means that they are from the same City
             // checks if the Client and the Technician are from the same City
             if(task.getClient().getCity().getCityID() == city.getCityID()){
-                taskFitness += 2.5;
+                taskFitness += sameCity;
             }
             else{ // means that they are from the same Area but not from the same City
-                taskFitness += 1.5;
+                taskFitness += sameArea;
             }
         }
 
         // check if the Client is premium
         if(task.getClient().isPremium()){
-            taskFitness += 1;
+            taskFitness += premiumScore;
         }
 
         // Calculate fitness based on urgency
-        taskFitness += 0.1 * (11 - task.getFault().getUrgencyLevel());
+        taskFitness += urgencyWeight * (11 - task.getFault().getUrgencyLevel());
 
         // if in the Specialization of the Task, the Technician is the best(from all the Specializations that he specialize)
-        taskFitness += 0.1 * specService.level(tech, task.getRequiredSpecialization());
+        taskFitness += techLevelWeight * specService.level(tech, task.getRequiredSpecialization());
 
-        // multiply the number of days that the Task waited with 0.1
-        taskFitness += 0.05 * calculateTaskWaiting(task);
+        // multiply the number of days that the Task waited with 0.05
+        taskFitness += waitingWeight * calculateTaskWaiting(task);
 
         return taskFitness;
     }
 
     private double calculateUnscheduledTask(ArrayList<Task> unscheduledTasks){
-        double tasksFitness = 0.0;
+        double tasksFitness = zero;
         
         for(int i = 0; i < unscheduledTasks.size(); i++){
             Task curTask = unscheduledTasks.get(i);
 
             // Calculate fitness based on urgency
-            tasksFitness -= 0.1 * (11 - curTask.getFault().getUrgencyLevel());
+            tasksFitness -= urgencyWeight * (11 - curTask.getFault().getUrgencyLevel());
             
             // checks if the Client in the current Task is premium
             if(curTask.getClient().isPremium()){
-                tasksFitness -= 1;
+                tasksFitness -= premiumScore;
             }
 
-            // multiply the number of days that the Task waited with 0.1
-            tasksFitness -= 0.05 * calculateTaskWaiting(curTask);
+            // multiply the number of days that the Task waited with 0.05
+            tasksFitness -= waitingWeight * calculateTaskWaiting(curTask);
 
         }
         return tasksFitness;
@@ -101,13 +116,13 @@ public class FitnessCalculator {
 
     // Calculates the fitness of a given schedule
     public double calculate(Schedule schedule, SpecializationService specService){
-        double fitness = 0.0;
+        double fitness = zero;
 
         // Calculate fitness for all scheduled tasks
         Map<Technician, ArrayList<Task>> scheduledTasksMap = schedule.getScheduling();
 
         for (Entry<Technician, ArrayList<Task>> entry : scheduledTasksMap.entrySet()) {
-            double minutesInDrive = 0.0, minutesOfWork = 0.0;
+            double minutesInDrive = zero, minutesOfWork = zero;
             Technician technician = entry.getKey();
             ArrayList<Task> tasks = entry.getValue();
             City prevCity = technician.getCity();

@@ -98,9 +98,8 @@ public class Task {
         }
     }
 
-    // Assuming the Task object holds a reference to the Technician object
     public String getTechnicianName() {
-        return this.assignedTechnician.getName(); // or however you retrieve the name
+        return this.assignedTechnician.getName(); 
     }
 
     // If duration is stored as an integer or long, make sure to return a String
@@ -109,6 +108,14 @@ public class Task {
             return String.valueOf(this.fault.getDuration());
         } else {
             return ""; // or some other default string
+        }
+    }
+
+    public Double getVisitPrice() {
+        if (assignedTechnician != null) {
+            return assignedTechnician.getVisitPrice();
+        } else {
+            return null;  // or another appropriate default value
         }
     }
 

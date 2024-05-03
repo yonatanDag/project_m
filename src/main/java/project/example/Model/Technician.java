@@ -33,10 +33,4 @@ public class Technician {
     public double getVisitPrice() {
         return visitPrice;
     }
-
-    @Override
-    public String toString() {
-        return name + " (" + city.getCityName() + ")"; 
-    }
-
 }

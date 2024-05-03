@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import project.example.Controller.ClientTaskController;
 import project.example.Controller.TechTaskController;
 
 import java.io.IOException;
@@ -37,25 +36,14 @@ public class App extends Application {
     public static void setRootTechTasks(String fxml, int technicianId) throws IOException {
         FXMLLoader loader = new FXMLLoader(App.class.getResource("/project/example/" + fxml + ".fxml"));
         Parent root = loader.load();
-
-        // Get the controller and call the method to pass the technician ID
+        
+        // Get the controller and set the technician ID
         TechTaskController controller = loader.getController();
-        controller.runAlgorithmAndDisplayTasks(technicianId);
-
+        controller.setTechnicianId(technicianId); // Assume you have a setter for technicianId in TechTaskController
+    
         scene.setRoot(root);
     }
     
-    // Method to pass the client ID to ClientTasks view.
-    public static void setRootClientTasks(String fxml, int clientId) throws IOException {
-        FXMLLoader loader = new FXMLLoader(App.class.getResource("/project/example/" + fxml + ".fxml"));
-        Parent root = loader.load();
-
-        // Get the controller and call the method to pass the client ID
-        ClientTaskController controller = loader.getController();
-        controller.setClientId(clientId);
-
-        scene.setRoot(root);
-    }
 
     public static void main(String[] args) {
         launch();
